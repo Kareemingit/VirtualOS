@@ -18,23 +18,30 @@ namespace VirtualOS
     /// Interaction logic for MainWindow.xaml
     /// </summary>
 
+
+    public enum IconType { DEFAULT, FILE, FOLDER, APP }
     public class DesktopIcon : INotifyPropertyChanged
     {
         private double _x;
         private double _y;
         public string Name { get; set; }
         public string IconPath { get; set; }
-
+        public IconType _IconType { get; set; }
         public double X
         {
             get => _x;
             set { _x = value; OnPropertyChanged(); }
         }
-
         public double Y
         {
             get => _y;
             set { _y = value; OnPropertyChanged(); }
+        }
+
+        public IconType IconType
+        {
+            get => _IconType;
+            set { _IconType = value; }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -52,11 +59,37 @@ namespace VirtualOS
         {
             InitializeComponent();
             Wallpaper.Source = DefaultWallpaper;
-            AddIcon(new DesktopIcon { Name = "Explorer", 
-                IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\fileexp.png", 
-                X = 0, Y = 20 });
+
+            AddIcon(GenerateDeskTopIcon("Exeproer", IconType.DEFAULT));
+
         }
 
+        private DesktopIcon GenerateDeskTopIcon(string name, IconType iconType)
+        {
+            DesktopIcon icon = new DesktopIcon();
+            icon.Name = name;
+            icon.IconType = iconType;
+            if (icon.IconType == IconType.DEFAULT)
+            {
+                icon.IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\fileexp.png";
+            }
+            if (DIcons.Count == 0)
+            {
+                icon.X = 0;
+                icon.Y = 20;
+            }
+            else if (DIcons.Count % 2 == 0)
+            {
+                icon.X = 0;
+                icon.Y = DIcons[DIcons.Count - 1].Y + 90;
+            }
+            else
+            {
+                icon.X = DIcons[DIcons.Count - 1].X + 90;
+                icon.Y = DIcons[DIcons.Count - 1].Y;
+            }
+            return icon;
+        }
 
         private void AddIcon(DesktopIcon iconData)
         {
@@ -102,7 +135,6 @@ namespace VirtualOS
             icon.MouseLeftButtonDown += Icon_MouseLeftButtonDown;
             icon.MouseMove += Icon_MouseMove;
             icon.MouseLeftButtonUp += Icon_MouseLeftButtonUp;
-            DIcons.Add(iconData);
             // Place on canvas
             Canvas.SetLeft(icon, iconData.X);
             Canvas.SetTop(icon, iconData.Y);
@@ -152,6 +184,22 @@ namespace VirtualOS
             {
                 _draggedElement.ReleaseMouseCapture();
                 _draggedElement = null;
+            }
+        }
+        private void StartMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var exitItem = new MenuItem { Header = "Shut Down" };
+            exitItem.Click += (s, args) => Application.Current.Shutdown();
+
+            var menu = new ContextMenu();
+            menu.Items.Add(exitItem);
+
+            // Attach the menu to the button
+            if (sender is Button startButton)
+            {
+                menu.PlacementTarget = startButton;
+                menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
+                menu.IsOpen = true;
             }
         }
     }
