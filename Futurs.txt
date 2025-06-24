@@ -70,4 +70,51 @@ System.Net
 System.IO
 Thread or Task for async receive
 
+--------------------------------------------
 
+
+Phase	Task	Skills/Topics
+1✅ Set up the WPF Project		- Create base window (desktop shell)
+					- Set up drag-drop desktop icons
+					- Implement right-click context menus
+					- Wallpaper customization
+
+
+2✅ Design the Virtual File System	- OOP structure (Item, VirtualFile, VirtualFolder)
+					- Recursive tree building
+					- JSON/XML saving/loading
+
+
+3✅ Implement File Explorer Window	- TreeView/ListView
+					- Open, rename, delete files/folders
+					- MVVM basics for state management
+
+
+4✅ Add Embedded Text/Code Editor	- Use AvalonEdit or RichTextBox
+					- Multi-tab editor
+					- Syntax highlighting
+					- File save/load integration
+
+
+
+5✅ Simulate Task Manager	- Track open windows/processes
+				- Show "CPU" and "RAM" usage (simulated)
+				- Kill/switch process features
+
+
+6✅ Simulate Storage and Memory Usage	- Define total virtual RAM/storage
+					- Track usage per file/window
+					- Add storage/memory bars
+
+
+7✅ Design a Start Menu / Launcher	- List system apps (Explorer, Editor, Chat)
+					- Launch and manage apps
+					- Optional search bar
+
+
+8✅ User Settings & Theming	- Light/dark modes
+				- Wallpaper selection
+				- UI animations and sound effects
+
+
+9✅ Add Networking: LAN Chat App	🔗 New Feature
