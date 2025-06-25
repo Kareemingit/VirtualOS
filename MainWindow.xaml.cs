@@ -1,9 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Win32;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -51,6 +53,9 @@ namespace VirtualOS
 
     public partial class MainWindow : Window
     {
+        public VirtualDirController controller = new VirtualDirController();
+        public File_Explorer explorer = null;
+
         public ObservableCollection<DesktopIcon> DIcons { get; set; } = new();
         private UIElement _draggedElement;
         private Point _dragOffset;
@@ -59,26 +64,23 @@ namespace VirtualOS
         {
             InitializeComponent();
             Wallpaper.Source = DefaultWallpaper;
-
+            controller.StartLoader();
             AddIcon(GenerateDeskTopIcon("Exeproer", IconType.DEFAULT));
-
+            
         }
-
         private DesktopIcon GenerateDeskTopIcon(string name, IconType iconType)
         {
             DesktopIcon icon = new DesktopIcon();
             icon.Name = name;
             icon.IconType = iconType;
-            if (icon.IconType == IconType.DEFAULT)
-            {
+            if (icon.IconType == IconType.DEFAULT) {
                 icon.IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\fileexp.png";
             }
-            if (DIcons.Count == 0)
-            {
+            if (DIcons.Count == 0) {
                 icon.X = 0;
                 icon.Y = 20;
             }
-            else if (DIcons.Count % 2 == 0)
+            else if(DIcons.Count % 2 == 0)
             {
                 icon.X = 0;
                 icon.Y = DIcons[DIcons.Count - 1].Y + 90;
@@ -99,7 +101,9 @@ namespace VirtualOS
                 Width = 80,
                 Height = 100,
                 Orientation = Orientation.Vertical,
-                DataContext = iconData
+                DataContext = iconData,
+                Background = Brushes.Transparent,
+                IsHitTestVisible = true
             };
 
             var image = new Image
@@ -130,21 +134,32 @@ namespace VirtualOS
             contextMenu.Items.Add(openItem);
             contextMenu.Items.Add(deleteItem);
             icon.ContextMenu = contextMenu;
-
+            
             // Add drag support
             icon.MouseLeftButtonDown += Icon_MouseLeftButtonDown;
             icon.MouseMove += Icon_MouseMove;
             icon.MouseLeftButtonUp += Icon_MouseLeftButtonUp;
+
             // Place on canvas
             Canvas.SetLeft(icon, iconData.X);
             Canvas.SetTop(icon, iconData.Y);
+            Panel.SetZIndex(icon, 99);
+            
             DesktopCanvas.Children.Add(icon);
+        }
+
+        public void OpenExplorer(VirtualFolder folder)
+        {
+            
         }
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem && menuItem.DataContext is DesktopIcon icon)
             {
-                MessageBox.Show($"Opening {icon.Name}...", "Info");
+                
+                explorer = new File_Explorer();
+                controller.OpenExplorer(explorer);
+                explorer.Show();
             }
         }
         private void Delete_Click(object sender, RoutedEventArgs e)
@@ -200,6 +215,36 @@ namespace VirtualOS
                 menu.PlacementTarget = startButton;
                 menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
                 menu.IsOpen = true;
+            }
+        }
+        private void DesktopCanvas_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            // Hit test: check if click landed on an icon
+            var result = VisualTreeHelper.HitTest(DesktopCanvas, e.GetPosition(DesktopCanvas));
+            if (result?.VisualHit is FrameworkElement element && element.DataContext is DesktopIcon) return;
+
+
+            var wallpaperItem = new MenuItem { Header = "Change Wallpaper" };
+            wallpaperItem.Click += ChangeWallpaper_Click;
+
+            var menu = new ContextMenu();
+            menu.Items.Add(wallpaperItem);
+
+            // Place menu at cursor position
+            menu.Placement = PlacementMode.MousePoint;
+            menu.IsOpen = true;
+        }
+        private void ChangeWallpaper_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Choose Wallpaper",
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                Wallpaper.Source = new BitmapImage(new Uri(dialog.FileName, UriKind.Absolute));
             }
         }
     }

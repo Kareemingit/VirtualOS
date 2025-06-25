@@ -2,10 +2,11 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Virtual Desktop"
-        Height="600" Width="900"
+        Height="720" Width="1250"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="Black">
+        Background="Black"
+        WindowStyle="None">
 
     <Grid>
         <!-- Wallpaper Layer -->
@@ -16,13 +17,15 @@
         <!-- Desktop Icon Layer -->
         <Canvas x:Name="DesktopCanvas"
                 Background="Transparent"
-                Panel.ZIndex="1">
+                MouseRightButtonUp="DesktopCanvas_RightClick"
+                Panel.ZIndex="0">
         </Canvas>
 
         <DockPanel VerticalAlignment="Bottom"
                    Height="30"
                    Background="#222"
-                   Panel.ZIndex="2">
+                   Panel.ZIndex="99">
+            
             <Button Content="Start"
                     Width="80"
                     Margin="4,0"
