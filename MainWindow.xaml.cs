@@ -66,7 +66,6 @@ namespace VirtualOS
             Wallpaper.Source = DefaultWallpaper;
             controller.StartLoader();
             AddIcon(GenerateDeskTopIcon("Exeproer", IconType.DEFAULT));
-            
         }
         private DesktopIcon GenerateDeskTopIcon(string name, IconType iconType)
         {
@@ -148,18 +147,16 @@ namespace VirtualOS
             DesktopCanvas.Children.Add(icon);
         }
 
-        public void OpenExplorer(VirtualFolder folder)
-        {
-            
-        }
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem && menuItem.DataContext is DesktopIcon icon)
             {
-                
-                explorer = new File_Explorer();
-                controller.OpenExplorer(explorer);
-                explorer.Show();
+                var root = controller.driverTree;
+                if (root != null)
+                {
+                    explorer = new File_Explorer(new VirtualFolder(root.Name, "C:/"), root.Children);
+                    explorer.Show();
+                }
             }
         }
         private void Delete_Click(object sender, RoutedEventArgs e)

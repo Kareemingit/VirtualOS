@@ -19,219 +19,103 @@ namespace VirtualOS
     /// Interaction logic for File_Explorer.xaml
     /// </summary>
 
-    public static class AbstractFactory
+    public static class ExplorerUIFactory
     {
-        public static TextBlock CreatePathBar(string currentPath)
+        public static void CreatePathBar(TextBlock pathBar, string currentPath)
         {
-            return new TextBlock
-            {
-                Text = currentPath,
-                FontSize = 14,
-                Foreground = System.Windows.Media.Brushes.White,
-                Margin = new Thickness(10)
-            };
+            pathBar.Text += $"{currentPath}";
         }
 
-        public static TreeView CreateSideTree(DeskDriver root)
+        public static void CreateSidebar(TreeView sidebar, List<VirtualDir> rootItems)
         {
-            TreeView tree = new TreeView();
-            foreach (var child in root.Children)
+            sidebar.Items.Clear();
+
+            foreach (var item in rootItems)
             {
-                if (child is VirtualFolder folder)
+                if (item is VirtualDir vDir)
                 {
-                    var item = BuildTreeViewItem(folder);
-                    tree.Items.Add(item);
+                    var treeItem = CreateTreeViewItem(vDir);
+                    sidebar.Items.Add(treeItem);
                 }
             }
-            return tree;
         }
 
-        private static TreeViewItem BuildTreeViewItem(VirtualFolder folder)
+        private static TreeViewItem CreateTreeViewItem(VirtualDir vDir)
         {
-            var item = new TreeViewItem { Header = folder.Name, Tag = folder };
-            foreach (var child in folder.Children)
+            var item = new TreeViewItem { Header = vDir.Name, Tag = vDir , Foreground = Brushes.Black };
+            
+            if (vDir is VirtualFolder folder)
             {
-                if (child is VirtualFolder subFolder)
+                foreach (var child in folder.Children)
                 {
-                    item.Items.Add(BuildTreeViewItem(subFolder));
+                    item.Items.Add(CreateTreeViewItem(child));
                 }
             }
-            item.Selected += (s, e) =>
-            {
-                if (item.Tag is VirtualFolder selectedFolder && GetMainWindow() is MainWindow mainWindow)
-                {
-                    mainWindow.OpenExplorer(selectedFolder);
-                }
-                e.Handled = true;
-            };
             return item;
         }
-
-        public static ScrollViewer CreateIconGrid(List<VirtualDir> items)
+        public static void CreateIconViewer(WrapPanel iconWrapPanel, List<VirtualDir> items, string fileIconPath, string folderIconPath)
         {
-            var grid = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10) };
-
+            iconWrapPanel.Children.Clear();
+            if (items == null) return;
             foreach (var item in items)
             {
-                grid.Children.Add(CreateIconForItem(item));
+                string iconPath = (item is VirtualFolder) ? folderIconPath : fileIconPath;
+                iconWrapPanel.Children.Add(CreateIcon(item, iconPath));
             }
-
-            return new ScrollViewer
-            {
-                Content = grid,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
-            };
         }
 
-        public static StackPanel CreateIconForItem(VirtualDir item)
+        private static StackPanel CreateIcon(VirtualDir item, string iconPath)
         {
-            string iconPath = item is VirtualFolder ?
-                ((VirtualFolder)item).DefultIconPath :
-                ((VirtualFile)item).DefultIconPath;
+            var icon = new StackPanel
+            {
+                Width = 80,
+                Height = 100,
+                Orientation = Orientation.Vertical,
+                Margin = new Thickness(5)
+            };
 
             var image = new Image
             {
                 Width = 48,
                 Height = 48,
-                Source = new BitmapImage(new Uri(iconPath)),
+                Source = new BitmapImage(new Uri(iconPath, UriKind.Absolute)),
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
             var label = new TextBlock
             {
                 Text = item.Name,
-                Foreground = System.Windows.Media.Brushes.White,
                 TextAlignment = TextAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            var panel = new StackPanel
-            {
-                Width = 80,
-                Height = 100,
-                Orientation = Orientation.Vertical,
-                Margin = new Thickness(5),
-                Tag = item,
-                Background = System.Windows.Media.Brushes.Transparent
-            };
+            icon.Children.Add(image);
+            icon.Children.Add(label);
 
-            panel.Children.Add(image);
-            panel.Children.Add(label);
-
-            panel.MouseLeftButtonDown += (s, e) =>
-            {
-                if (item is VirtualFolder folder && GetMainWindow() is MainWindow mainWindow)
-                {
-                    mainWindow.OpenExplorer(folder);
-                }
-            };
-
-            return panel;
+            return icon;
         }
-
-        private static MainWindow? GetMainWindow() => Application.Current.MainWindow as MainWindow;
     }
-
 
     public partial class File_Explorer : Window
     {
-        private string fileIconPath = "D:/icons/file.png";
-        private string folderIconPath = "D:/icons/folder.png";
+        //private string fileIconPath = "D:/icons/file.png";
+        //private string folderIconPath = "D:/icons/folder.png";
         //VirtualDir initialDir, DeskDriver root
-        public File_Explorer()
+        public File_Explorer(VirtualDir currentDir, List<VirtualDir> rootStructure)
         {
             InitializeComponent();
-            //BuildSidebar(root);
-            //UpdateExplorerView(initialDir);
+
+            string fileIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/Paomedia-Small-N-Flat-File-text.ico";
+            string folderIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/directory-150354_960_720.webp";
+
+            PathBar.Text = "Current Path: ";
+            ExplorerUIFactory.CreatePathBar(PathBar, currentDir.Virtualpath);
+            ExplorerUIFactory.CreateSidebar(Sidebar, rootStructure);
+
+            if (currentDir is VirtualFolder folder)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath);
+            }
         }
-
-        
-        /*
-                private void BuildSidebar(DeskDriver root)
-                {
-                    Sidebar.Items.Clear();
-
-                    foreach (var item in root.Children)
-                    {
-                        if (item is VirtualFolder folder)
-                        {
-                            var node = CreateTreeItem(folder);
-                            Sidebar.Items.Add(node);
-                        }
-                    }
-
-                    Sidebar.SelectedItemChanged += (s, e) =>
-                    {
-                        if (Sidebar.SelectedItem is TreeViewItem treeItem && treeItem.Tag is VirtualDir dir)
-                        {
-                            UpdateExplorerView(dir);
-                        }
-                    };
-                }
-
-                private TreeViewItem CreateTreeItem(VirtualFolder folder)
-                {
-                    var item = new TreeViewItem { Header = folder.Name, Tag = folder };
-
-                    foreach (var child in folder.Children)
-                    {
-                        if (child is VirtualFolder subFolder)
-                            item.Items.Add(CreateTreeItem(subFolder));
-                        else
-                            item.Items.Add(new TreeViewItem { Header = child.Name, Tag = child });
-                    }
-
-                    return item;
-                }
-
-                private void UpdateExplorerView(VirtualDir dir)
-                {
-                    IconWrapPanel.Children.Clear();
-                    PathBar.Text = dir.FullPath;
-
-                    if (dir is VirtualFolder folder)
-                    {
-                        foreach (var child in folder.Children)
-                        {
-                            IconWrapPanel.Children.Add(CreateIcon(child));
-                        }
-                    }
-                }
-
-                private UIElement CreateIcon(VirtualDir item)
-                {
-                    string iconPath = item is VirtualFile ? fileIconPath : folderIconPath;
-
-                    var stack = new StackPanel
-                    {
-                        Width = 80,
-                        Height = 100,
-                        Margin = new Thickness(10),
-                        Orientation = Orientation.Vertical,
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    };
-
-                    var image = new Image
-                    {
-                        Source = new BitmapImage(new Uri(iconPath, UriKind.Absolute)),
-                        Width = 48,
-                        Height = 48,
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    };
-
-                    var label = new TextBlock
-                    {
-                        Text = item.Name,
-                        TextAlignment = TextAlignment.Center,
-                        Foreground = System.Windows.Media.Brushes.Black,
-                        FontSize = 12
-                    };
-
-                    stack.Children.Add(image);
-                    stack.Children.Add(label);
-
-                    return stack;
-                }
-        */
     }
 }

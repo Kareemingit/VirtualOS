@@ -23,7 +23,7 @@ namespace VirtualOS
     {
         private const string ActualPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Root Desk";
         public string? Name;
-        public List<VirtualDir> Children;
+        public List<VirtualDir> Children = new();
 
         public DeskDriver(string _name , string _vpath)
         {
@@ -217,13 +217,11 @@ namespace VirtualOS
 
     public class VirtualFolder : VirtualDir
     {
-        public string? Name;
         public string DefultIconPath = "D:\\01 Kareem\\programing projects\\VirtualOS\\WpfApp1\\Assets\\icons\\directory-150354_960_720.webp";
-        public List<VirtualDir> Children;
+        public List<VirtualDir> Children { get; set; } = new();
         public VirtualFolder(string? _name , string? _virtualpath) : 
             base(_name , _virtualpath) {
         }
-
 
     }
 
@@ -239,14 +237,9 @@ namespace VirtualOS
         public void StartLoader()
         {
             DeskDriver desk = new DeskDriver("C:/", "C:/");
+            desk.Children = new List<VirtualDir>();
+            desk.loadDeskTreeV2();
             driverTree = desk;
-            driverTree.loadDeskTreeV2();
         }
-
-        public void OpenExplorer(File_Explorer explorer)
-        {
-
-        }
-
     }
 }

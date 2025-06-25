@@ -18,7 +18,7 @@
             <TextBlock x:Name="PathBar" DockPanel.Dock="Top" FontSize="14" Padding="10" Background="LightGray"/>
 
             <!-- Left Sidebar TreeView (Static) -->
-            <TreeView x:Name="Sidebar" DockPanel.Dock="Left" Width="200" Background="White"/>
+            <TreeView x:Name="Sidebar" DockPanel.Dock="Left" Width="200" Background="White" Foreground="Black"/>
 
             <!-- Main Icon Viewer (Dynamic Content) -->
             <ScrollViewer x:Name="MainScrollViewer" Background="White">
