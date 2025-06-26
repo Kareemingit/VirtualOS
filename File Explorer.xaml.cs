@@ -63,8 +63,10 @@ namespace VirtualOS
 
             // "Open" is common for both
             var openItem = new MenuItem { Header = "Open", Tag = vDir };
-            openItem.Click += (s, e) => 
-            MessageBox.Show($"Open: {vDir.Name}");
+            openItem.Click += (s, e) =>
+            {
+                parentWindow.UpdatePathAndIcons(vDir);
+            };
 
             menu.Items.Add(openItem);
 
@@ -74,10 +76,20 @@ namespace VirtualOS
                 var newSubMenu = new MenuItem { Header = "New .." };
 
                 var newFolderItem = new MenuItem { Header = "Folder", Tag = vDir };
-                newFolderItem.Click += (s, e) => MessageBox.Show($"New Folder inside: {vDir.Name}");
-
+                newFolderItem.Click += (s, e) =>
+                {
+                    var newFolder = new VirtualFolder("New Folder", $"{folder.Virtualpath}/New Folder");
+                    folder.Children.Add(newFolder);
+                    parentWindow.RefreshSidebarAndIcons();
+                };
                 var newFileItem = new MenuItem { Header = "File Document", Tag = vDir };
-                newFileItem.Click += (s, e) => MessageBox.Show($"New File inside: {vDir.Name}");
+                
+                newFileItem.Click += (s, e) =>
+                {
+                    var newFile = new TXTFile("New File.txt", $"{folder.Virtualpath}/New File.txt");
+                    folder.Children.Add(newFile);
+                    parentWindow.RefreshSidebarAndIcons();
+                };
 
                 newSubMenu.Items.Add(newFolderItem);
                 newSubMenu.Items.Add(newFileItem);
@@ -87,7 +99,13 @@ namespace VirtualOS
 
             // "Delete" is common for both
             var deleteItem = new MenuItem { Header = "Delete", Tag = vDir };
-            deleteItem.Click += (s, e) => MessageBox.Show($"Delete: {vDir.Name}");
+            deleteItem.Click += (s, e) =>
+            {
+                if (s is MenuItem item && item.Tag is VirtualDir deletedItem)
+                {
+                    parentWindow.DeleteNode(deletedItem);
+                }
+            };
 
             menu.Items.Add(deleteItem);
 
@@ -112,7 +130,8 @@ namespace VirtualOS
                 Height = 100,
                 Orientation = Orientation.Vertical,
                 Margin = new Thickness(5),
-                ContextMenu = CreateContextMenuFor(item , parentWindow)
+                ContextMenu = CreateContextMenuFor(item , parentWindow),
+                DataContext = item
             };
 
             var image = new Image
@@ -139,13 +158,15 @@ namespace VirtualOS
 
     public partial class File_Explorer : Window
     {
+        DeskDriver Root;
+        string fileIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/Paomedia-Small-N-Flat-File-text.ico";
+        string folderIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/directory-150354_960_720.webp";
+        private VirtualDir currentDir;
+        public VirtualDir CurrentDir => currentDir;
         public File_Explorer(DeskDriver root, List<VirtualDir> rootStructure)
         {
             InitializeComponent();
-
-            string fileIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/Paomedia-Small-N-Flat-File-text.ico";
-            string folderIconPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Assets/icons/directory-150354_960_720.webp";
-
+            Root = root;
             PathBar.Text = "Current Path: ";
             ExplorerUIFactory.CreatePathBar(PathBar, root.Path);
             ExplorerUIFactory.CreateSidebar(Sidebar, rootStructure , this);
@@ -154,6 +175,57 @@ namespace VirtualOS
             {
                 ExplorerUIFactory.CreateIconViewer(IconWrapPanel, root.Children, fileIconPath, folderIconPath , this);
             }
+        }
+
+        public void RefreshSidebarAndIcons()
+        {
+            ExplorerUIFactory.CreateSidebar(Sidebar, Root.Children, this);
+
+            if (currentDir is VirtualFolder folder)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath , this);
+            }
+        }
+
+        public void UpdatePathAndIcons(VirtualDir vDir)
+        {
+            PathBar.Text = $"Current Path: {vDir.Virtualpath}";
+
+            if (vDir is VirtualFolder folder)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath , this);
+            }
+        }
+
+        public void DeleteNode(VirtualDir target)
+        {
+            if (currentDir == null)
+            {
+                var icon = IconWrapPanel.Children
+                    .OfType<StackPanel>()
+                    .FirstOrDefault(sp => sp.DataContext == target);
+
+                if (icon != null)
+                {
+                    IconWrapPanel.Children.Remove(icon);
+                }
+                return;
+            }
+
+            else
+            {
+                // We're inside a folder → remove icon from icon viewer (UI only)
+                var icon = IconWrapPanel.Children
+                    .OfType<StackPanel>()
+                    .FirstOrDefault(sp => sp.DataContext == target);
+
+                if (icon != null)
+                {
+                    IconWrapPanel.Children.Remove(icon);
+                }
+            }
+            // Update UI
+            RefreshSidebarAndIcons();
         }
     }
 }
