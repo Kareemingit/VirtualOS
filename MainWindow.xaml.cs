@@ -154,7 +154,7 @@ namespace VirtualOS
                 var root = controller.driverTree;
                 if (root != null)
                 {
-                    explorer = new File_Explorer(new VirtualFolder(root.Name, "C:/"), root.Children);
+                    explorer = new File_Explorer(root, root.Children);
                     explorer.Show();
                 }
             }

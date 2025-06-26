@@ -23,14 +23,14 @@ namespace VirtualOS
     {
         private const string ActualPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Root Desk";
         public string? Name;
+        public string? Path;
         public List<VirtualDir> Children = new();
 
         public DeskDriver(string _name , string _vpath)
         {
             Name = _name;
+            Path = _vpath;
         }
-
-
         private List<VirtualDir> BuildTree(DirectoryInfo dir)
         {
             var list = new List<VirtualDir>();
@@ -85,7 +85,6 @@ namespace VirtualOS
             try { return dir.GetFiles(); }
             catch { return Array.Empty<FileInfo>(); }
         }
-
         public void loadDeskTreeV2()
         {
             var rootInfo = new DirectoryInfo(ActualPath);
@@ -241,5 +240,15 @@ namespace VirtualOS
             desk.loadDeskTreeV2();
             driverTree = desk;
         }
+    }
+
+    public class FileSysWacher
+    {
+
+    }
+
+    public class VirtualLoader
+    {
+
     }
 }
