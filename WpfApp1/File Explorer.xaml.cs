@@ -187,7 +187,6 @@ namespace VirtualOS
                 ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath , this);
             }
         }
-
         public void UpdatePathAndIcons(VirtualDir vDir)
         {
             PathBar.Text = "Current Path: "+ vDir.UIPath;
@@ -199,7 +198,7 @@ namespace VirtualOS
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Add logic to go back in navigation history
+            // TODO: Add logic to go forward in navigation history
         }
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
@@ -208,10 +207,10 @@ namespace VirtualOS
         }
         public void Open(VirtualDir vDir)
         {
-            core.Open(vDir);
-            UpdatePathAndIcons(vDir);
+            core.OpenNew(vDir);
+            if(vDir is VirtualFolder)
+                UpdatePathAndIcons(vDir);
         }
-
         public void DeleteNode(VirtualDir target)
         {
             if (currentDir == null)

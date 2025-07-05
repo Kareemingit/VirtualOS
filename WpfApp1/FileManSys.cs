@@ -232,7 +232,7 @@ namespace VirtualOS
         public DeskDriver? driverTree;
         private List<VirtualDir>? CurrentPathNodes = new();
         private VirtualDir? currentUserNode;
-
+        private int currentUserNodeIndex = -1;
         public VirtualDirController()
         {
             currentUserNode = null;
@@ -245,11 +245,36 @@ namespace VirtualOS
             desk.loadDeskTreeV2();
             driverTree = desk;
         }
-        
+
+        public VirtualFolder GetNodeBeforeCurrent()
+        {
+            return null;
+        }
+
+        public void MovePathPointerForward()
+        {
+            currentUserNodeIndex++;
+        }
+
+        public void MovePathPointerBackward()
+        {
+            currentUserNodeIndex--;
+        }
+
         public void OpenFolder(VirtualFolder folder)
         {
+            if (folder == null) return;
+            if (CurrentPathNodes.Count > currentUserNodeIndex + 1)
+            {
+                CurrentPathNodes.RemoveRange(currentUserNodeIndex + 1, CurrentPathNodes.Count - (currentUserNodeIndex + 1));
+            }
             folder.Open(folder.Virtualpath);
             currentUserNode = folder;
+        }
+        public void OpenNewFolder(VirtualFolder folder)
+        {
+            MovePathPointerForward();
+            OpenFolder(folder);
             CurrentPathNodes.Add(folder);
         }
         public void createFolder(string path , string name)

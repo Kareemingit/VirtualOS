@@ -18,17 +18,23 @@ namespace VirtualOS
         {
             return virtualDirController.driverTree;
         }
+
+        public VirtualFolder BackTrack()
+        {
+            return null;
+        }
         public void Load()
         {
             virtualDirController.StartLoader();
         }
-        public void Open(VirtualDir vDir)
+
+        public void OpenNew(VirtualDir vDir)
         {
-            if (vDir == null) throw new ArgumentNullException("virtual directory is not found");
+            if (vDir == null) return;
 
             if(vDir is VirtualFolder folder)
             {
-                virtualDirController.OpenFolder(folder);
+                virtualDirController.OpenNewFolder(folder);
             }
             if(vDir is VirtualFile)
             {
