@@ -1,0 +1,38 @@
+﻿<Window x:Class="VirtualOS.File_Explorer"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VirtualOS"
+        mc:Ignorable="d"
+        Title="File_Explorer" 
+        Height="600"
+        Width="900"
+        ResizeMode="CanResize"
+        Background="White"
+        WindowStartupLocation ="CenterScreen">
+    <Grid>
+        <DockPanel>
+
+            <!-- Top Path Bar (Static) -->
+            <!-- <TextBlock x:Name="PathBar" DockPanel.Dock="Top" FontSize="14" Padding="10" Background="LightGray"/> -->
+            <!-- Top Path Bar with Navigation -->
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="LightGray">
+                <Button x:Name="BackButton" Content="←" Width="30" Margin="5,0" Click="BackButton_Click"/>
+                <Button x:Name="ForwardButton" Content="→" Width="30" Margin="0,0,10,0" Click="ForwardButton_Click"/>
+                <TextBlock x:Name="PathBar" DockPanel.Dock="Top" FontSize="14" Padding="10" Background="LightGray"/>
+            </StackPanel>
+
+            <!-- Left Sidebar TreeView (Static) -->
+            <TreeView x:Name="Sidebar" DockPanel.Dock="Left" Width="200" Background="White" Foreground="Black"/>
+
+            <!-- Main Icon Viewer (Dynamic Content) -->
+            <ScrollViewer x:Name="MainScrollViewer" Background="White"
+                          PreviewMouseRightButtonDown="MainScrollViewer_RightClick">
+                <WrapPanel x:Name="IconWrapPanel" Margin="10"/>
+            </ScrollViewer>
+
+        </DockPanel>
+        
+    </Grid>
+</Window>
