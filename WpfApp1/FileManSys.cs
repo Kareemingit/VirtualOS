@@ -20,20 +20,17 @@ namespace VirtualOS
     //    public int FoldersCount;
     //}
 
-    public class DeskDriver
+    public class DeskDriver : VirtualDir
     {
         private const string ActualPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Root Desk";
-        public string? Name;
-        public string? Path;
         public List<VirtualDir> Children = new();
 
-        public DeskDriver(string _name , string _vpath)
+        public DeskDriver(string _name, string _vpath, string uipath) :
+            base(_name, _vpath, uipath)
         {
-            Name = _name;
-            Path = _vpath;
         }
 
-        public string GetActualPath() { return ActualPath;}
+        public string GetActualPath() { return ActualPath; }
         private List<VirtualDir> BuildTree(DirectoryInfo dir)
         {
             var list = new List<VirtualDir>();
@@ -41,7 +38,7 @@ namespace VirtualOS
             // Add directories
             foreach (var subDir in dir.GetDirectories())
             {
-                var vFolder = new VirtualFolder(subDir.Name, subDir.FullName , "C:")
+                var vFolder = new VirtualFolder(subDir.Name, subDir.FullName, "C:")
                 {
                     Children = BuildTree(subDir)
                 };
@@ -51,15 +48,15 @@ namespace VirtualOS
             // Add files
             foreach (var file in dir.GetFiles())
             {
-                
+
                 VirtualFile? vFile = null;
                 if (file.Extension == ".txt")
                 {
-                    vFile = new TXTFile(file.Name, file.FullName , "tst");
+                    vFile = new TXTFile(file.Name, file.FullName, "tst");
                 }
                 else
                 {
-                    vFile = new VirtualFile(file.Name, file.FullName, file.Extension , "tst");
+                    vFile = new VirtualFile(file.Name, file.FullName, file.Extension, "tst");
                 }
 
                 list.Add(vFile);
@@ -70,7 +67,7 @@ namespace VirtualOS
         public void loadDeskTreeV1()
         {
             var rootInfo = new DirectoryInfo(ActualPath);
-            foreach(var item in BuildTree(rootInfo))
+            foreach (var item in BuildTree(rootInfo))
             {
                 Children.Add(item);
             }
@@ -89,7 +86,7 @@ namespace VirtualOS
         {
             var rootInfo = new DirectoryInfo(ActualPath);
 
-            var rootFolder = new VirtualFolder(rootInfo.Name , rootInfo.FullName, "C:")
+            var rootFolder = new VirtualFolder(rootInfo.Name, rootInfo.FullName, "C:")
             {
                 Children = new List<VirtualDir>()
             };
@@ -104,7 +101,7 @@ namespace VirtualOS
                 // Add subdirectories
                 foreach (var subDir in SafeGetDirectories(currentDirInfo))
                 {
-                    var subFolder = new VirtualFolder(subDir.Name , subDir.FullName , currentVirtualFolder.UIPath+ "/" + subDir.Name)
+                    var subFolder = new VirtualFolder(subDir.Name, subDir.FullName, currentVirtualFolder.UIPath + "/" + subDir.Name)
                     {
                         Children = new List<VirtualDir>()
                     };
@@ -117,7 +114,7 @@ namespace VirtualOS
                 foreach (var file in SafeGetFiles(currentDirInfo))
                 {
                     VirtualFile? vFile = null;
-                    string CurrUIPath = currentVirtualFolder.UIPath +"/"+file.Name;
+                    string CurrUIPath = currentVirtualFolder.UIPath + "/" + file.Name;
                     if (file.Extension == ".txt")
                     {
                         vFile = new TXTFile(file.Name, file.FullName, CurrUIPath);
@@ -156,14 +153,14 @@ namespace VirtualOS
         public string? Name;
         public string? Virtualpath;
         public string? UIPath;
-        public VirtualDir(string? name, string? virtualpath , string? uipath)
+        public VirtualDir(string? name, string? virtualpath, string? uipath)
         {
             Name = name;
             Virtualpath = virtualpath;
             UIPath = uipath;
         }
 
-        public virtual void Create(string Vpath) 
+        public virtual void Create(string Vpath)
         {
 
         }
@@ -172,7 +169,7 @@ namespace VirtualOS
 
         }
 
-        public virtual void Close() 
+        public virtual void Close()
         {
         }
 
@@ -180,14 +177,14 @@ namespace VirtualOS
         {
 
         }
-    
+
     }
 
     public class VirtualFile : VirtualDir
     {
         public string extention;
-        public VirtualFile(string? _name, string? _virtualpath, string extention , string uipath) :
-            base(_name, _virtualpath , uipath)
+        public VirtualFile(string? _name, string? _virtualpath, string extention, string uipath) :
+            base(_name, _virtualpath, uipath)
         {
             this.extention = extention;
         }
@@ -195,12 +192,12 @@ namespace VirtualOS
 
     public class VirtualIOFile : VirtualFile
     {
-        public VirtualIOFile(string? _name, string? _virtualpath , string ext , string uipath) :
-            base(_name, _virtualpath , ext , uipath)
+        public VirtualIOFile(string? _name, string? _virtualpath, string ext, string uipath) :
+            base(_name, _virtualpath, ext, uipath)
         { }
     }
 
-    public class VirtualAppFile : VirtualFile 
+    public class VirtualAppFile : VirtualFile
     {
         public VirtualAppFile(string? _name, string? _virtualpath, string uipath) :
             base(_name, _virtualpath, null, uipath)
@@ -209,86 +206,41 @@ namespace VirtualOS
 
     public class TXTFile : VirtualFile
     {
-        public TXTFile(string? _name, string? _virtualpath , string uipath) :
-            base(_name, _virtualpath , ".txt", uipath)
+        public TXTFile(string? _name, string? _virtualpath, string uipath) :
+            base(_name, _virtualpath, ".txt", uipath)
         { }
     }
 
     public class VirtualFolder : VirtualDir
     {
         public List<VirtualDir> Children { get; set; } = new();
-        public VirtualFolder(string? _name , string? _virtualpath , string? uipath) :
-            base(_name, _virtualpath , uipath)
+        public VirtualFolder(string? _name, string? _virtualpath, string? uipath) :
+            base(_name, _virtualpath, uipath)
         {
         }
 
     }
 
-
-
     //Core File System Engin
     public class VirtualDirController
     {
         public DeskDriver? driverTree;
-        private List<VirtualDir>? CurrentPathNodes = new();
-        private VirtualDir? currentUserNode;
-        private int currentUserNodeIndex = -1;
-        public VirtualDirController()
-        {
-            currentUserNode = null;
-        }
+        private static VirtualDirController? _instance;
 
+        public static VirtualDirController Instance => _instance ??= new VirtualDirController();
+
+        public VirtualDirController() { }
         public void StartLoader()
         {
-            DeskDriver desk = new DeskDriver("C:", "C:");
+            if (driverTree != null)
+                return;
+            DeskDriver desk = new DeskDriver("C:", "C:", "C:");
             desk.Children = new List<VirtualDir>();
             desk.loadDeskTreeV2();
             driverTree = desk;
         }
 
-        public VirtualFolder GetNodeBeforeCurrent()
-        {
-            return null;
-        }
 
-        public void MovePathPointerForward()
-        {
-            currentUserNodeIndex++;
-        }
-
-        public void MovePathPointerBackward()
-        {
-            currentUserNodeIndex--;
-        }
-
-        public void OpenFolder(VirtualFolder folder)
-        {
-            if (folder == null) return;
-            if (CurrentPathNodes.Count > currentUserNodeIndex + 1)
-            {
-                CurrentPathNodes.RemoveRange(currentUserNodeIndex + 1, CurrentPathNodes.Count - (currentUserNodeIndex + 1));
-            }
-            folder.Open(folder.Virtualpath);
-            currentUserNode = folder;
-        }
-        public void OpenNewFolder(VirtualFolder folder)
-        {
-            MovePathPointerForward();
-            OpenFolder(folder);
-            CurrentPathNodes.Add(folder);
-        }
-        public void createFolder(string path , string name)
-        {
-            VirtualFolder newFolder = null;
-            if(path == null)
-            {
-                
-            }
-            else
-            {
-
-            }
-        }
     }
 
     public class FileSysWacher

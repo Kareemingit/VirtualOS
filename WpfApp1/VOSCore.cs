@@ -12,31 +12,64 @@ namespace VirtualOS
 
     public class FileManager : VOSCore
     {
-        private VirtualDirController virtualDirController = new VirtualDirController();
+        private VirtualDirController virtualDirController = VirtualDirController.Instance;
+        private List<VirtualDir> CurrentPathNodes = new();
+        private VirtualDir? currentUserNode;
+        private int currentUserNodeIndex = -1;
 
+        public void Load()
+        {
+            virtualDirController.StartLoader();
+        }
         public DeskDriver GetRoot()
         {
             return virtualDirController.driverTree;
         }
 
-        public VirtualFolder BackTrack()
+        public void RunRoot()
         {
-            return null;
+            currentUserNodeIndex++;
+            currentUserNode = virtualDirController.driverTree;
+            CurrentPathNodes.Add(currentUserNode);
         }
-        public void Load()
+        public VirtualDir BackTrack()
         {
-            virtualDirController.StartLoader();
+            if (currentUserNodeIndex == 0) return null;
+            currentUserNodeIndex--;
+            currentUserNode = CurrentPathNodes[currentUserNodeIndex];
+            return currentUserNode;
         }
 
+        public VirtualDir GoForward()
+        {
+            if (currentUserNodeIndex == CurrentPathNodes.Count - 1) return null;
+            currentUserNodeIndex++;
+            currentUserNode = CurrentPathNodes[currentUserNodeIndex];
+            return currentUserNode;
+        }
+
+
+        public void OpenNewFolder(VirtualFolder folder)
+        {
+            if (folder == null) return;
+            if (CurrentPathNodes.Count > currentUserNodeIndex + 1)
+            {
+                CurrentPathNodes.RemoveRange(currentUserNodeIndex + 1, CurrentPathNodes.Count - (currentUserNodeIndex + 1));
+            }
+            CurrentPathNodes.Add(folder);
+            folder.Open(folder.Virtualpath);
+            currentUserNode = folder;
+            currentUserNodeIndex++;
+        }
         public void OpenNew(VirtualDir vDir)
         {
             if (vDir == null) return;
 
-            if(vDir is VirtualFolder folder)
+            if (vDir is VirtualFolder folder)
             {
-                virtualDirController.OpenNewFolder(folder);
+                OpenNewFolder(folder);
             }
-            if(vDir is VirtualFile)
+            if (vDir is VirtualFile)
             {
 
             }

@@ -54,7 +54,7 @@ namespace VirtualOS
     public partial class MainWindow : Window
     {
         //public VirtualDirController controller = new VirtualDirController();
-        public FileManager fileManager = new FileManager();
+        private FileManager fileManager = new FileManager();
         public File_Explorer explorer = null;
 
         public ObservableCollection<DesktopIcon> DIcons { get; set; } = new();
@@ -73,14 +73,16 @@ namespace VirtualOS
             DesktopIcon icon = new DesktopIcon();
             icon.Name = name;
             icon.IconType = iconType;
-            if (icon.IconType == IconType.DEFAULT) {
+            if (icon.IconType == IconType.DEFAULT)
+            {
                 icon.IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\fileexp.png";
             }
-            if (DIcons.Count == 0) {
+            if (DIcons.Count == 0)
+            {
                 icon.X = 0;
                 icon.Y = 20;
             }
-            else if(DIcons.Count % 2 == 0)
+            else if (DIcons.Count % 2 == 0)
             {
                 icon.X = 0;
                 icon.Y = DIcons[DIcons.Count - 1].Y + 90;
@@ -134,7 +136,7 @@ namespace VirtualOS
             contextMenu.Items.Add(openItem);
             contextMenu.Items.Add(deleteItem);
             icon.ContextMenu = contextMenu;
-            
+
             // Add drag support
             icon.MouseLeftButtonDown += Icon_MouseLeftButtonDown;
             icon.MouseMove += Icon_MouseMove;
@@ -144,7 +146,7 @@ namespace VirtualOS
             Canvas.SetLeft(icon, iconData.X);
             Canvas.SetTop(icon, iconData.Y);
             Panel.SetZIndex(icon, 99);
-            
+
             DesktopCanvas.Children.Add(icon);
         }
 

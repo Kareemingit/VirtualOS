@@ -26,7 +26,7 @@ namespace VirtualOS
         {
             pathBar.Text += $"{currentPath}";
         }
-        public static void CreateSidebar(TreeView sidebar, List<VirtualDir> rootItems , File_Explorer parentWindow)
+        public static void CreateSidebar(TreeView sidebar, List<VirtualDir> rootItems, File_Explorer parentWindow)
         {
             sidebar.Items.Clear();
 
@@ -34,30 +34,31 @@ namespace VirtualOS
             {
                 if (item is VirtualDir vDir)
                 {
-                    var treeItem = CreateTreeViewItem(vDir , parentWindow);
+                    var treeItem = CreateTreeViewItem(vDir, parentWindow);
                     sidebar.Items.Add(treeItem);
                 }
             }
         }
-        private static TreeViewItem CreateTreeViewItem(VirtualDir vDir , File_Explorer parentWindow)
+        private static TreeViewItem CreateTreeViewItem(VirtualDir vDir, File_Explorer parentWindow)
         {
-            var item = new TreeViewItem { 
-                Header = vDir.Name, 
-                Tag = vDir , 
+            var item = new TreeViewItem
+            {
+                Header = vDir.Name,
+                Tag = vDir,
                 Foreground = Brushes.Black,
-                ContextMenu = CreateContextMenuFor(vDir , parentWindow)
+                ContextMenu = CreateContextMenuFor(vDir, parentWindow)
             };
-            
+
             if (vDir is VirtualFolder folder)
             {
                 foreach (var child in folder.Children)
                 {
-                    item.Items.Add(CreateTreeViewItem(child , parentWindow));
+                    item.Items.Add(CreateTreeViewItem(child, parentWindow));
                 }
             }
             return item;
         }
-        private static ContextMenu CreateContextMenuFor(VirtualDir vDir , File_Explorer parentWindow)
+        private static ContextMenu CreateContextMenuFor(VirtualDir vDir, File_Explorer parentWindow)
         {
             var menu = new ContextMenu();
 
@@ -78,15 +79,15 @@ namespace VirtualOS
                 var newFolderItem = new MenuItem { Header = "Folder", Tag = vDir };
                 newFolderItem.Click += (s, e) =>
                 {
-                    var newFolder = new VirtualFolder("New Folder", $"{folder.Virtualpath}/New Folder" , $"{folder.Virtualpath}/New Folder");
+                    var newFolder = new VirtualFolder("New Folder", $"{folder.Virtualpath}/New Folder", $"{folder.Virtualpath}/New Folder");
                     folder.Children.Add(newFolder);
                     parentWindow.RefreshSidebarAndIcons();
                 };
                 var newFileItem = new MenuItem { Header = "File Document", Tag = vDir };
-                
+
                 newFileItem.Click += (s, e) =>
                 {
-                    var newFile = new TXTFile("New File.txt", $"{folder.Virtualpath}/New File.txt" , $"{folder.Virtualpath}/New File.txt");
+                    var newFile = new TXTFile("New File.txt", $"{folder.Virtualpath}/New File.txt", $"{folder.Virtualpath}/New File.txt");
                     folder.Children.Add(newFile);
                     parentWindow.RefreshSidebarAndIcons();
                 };
@@ -111,17 +112,17 @@ namespace VirtualOS
 
             return menu;
         }
-        public static void CreateIconViewer(WrapPanel iconWrapPanel, List<VirtualDir> items, string fileIconPath, string folderIconPath , File_Explorer parentWindow)
+        public static void CreateIconViewer(WrapPanel iconWrapPanel, List<VirtualDir> items, string fileIconPath, string folderIconPath, File_Explorer parentWindow)
         {
             iconWrapPanel.Children.Clear();
             if (items == null) return;
             foreach (var item in items)
             {
                 string iconPath = (item is VirtualFolder) ? folderIconPath : fileIconPath;
-                iconWrapPanel.Children.Add(CreateIcon(item, iconPath , parentWindow));
+                iconWrapPanel.Children.Add(CreateIcon(item, iconPath, parentWindow));
             }
         }
-        private static StackPanel CreateIcon(VirtualDir item, string iconPath , File_Explorer parentWindow)
+        private static StackPanel CreateIcon(VirtualDir item, string iconPath, File_Explorer parentWindow)
         {
             var icon = new StackPanel
             {
@@ -129,7 +130,7 @@ namespace VirtualOS
                 Height = 100,
                 Orientation = Orientation.Vertical,
                 Margin = new Thickness(5),
-                ContextMenu = CreateContextMenuFor(item , parentWindow),
+                ContextMenu = CreateContextMenuFor(item, parentWindow),
                 DataContext = item
             };
 
@@ -168,13 +169,14 @@ namespace VirtualOS
         {
             InitializeComponent();
             Root = root;
-            PathBar.Text = "Current Path: ";
-            ExplorerUIFactory.CreatePathBar(PathBar, root.Path);
-            ExplorerUIFactory.CreateSidebar(Sidebar, rootStructure , this);
+            PathBar.Text = $"Current Path: ";
+            ExplorerUIFactory.CreatePathBar(PathBar, root.UIPath);
+            ExplorerUIFactory.CreateSidebar(Sidebar, rootStructure, this);
+            core.RunRoot();
 
             if (root is DeskDriver desk)
             {
-                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, root.Children, fileIconPath, folderIconPath , this);
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, root.Children, fileIconPath, folderIconPath, this);
             }
         }
 
@@ -184,31 +186,51 @@ namespace VirtualOS
 
             if (currentDir is VirtualFolder folder)
             {
-                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath , this);
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath, this);
             }
         }
         public void UpdatePathAndIcons(VirtualDir vDir)
         {
-            PathBar.Text = "Current Path: "+ vDir.UIPath;
+            PathBar.Text = "Current Path: " + vDir.UIPath;
 
             if (vDir is VirtualFolder folder)
             {
-                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath , this);
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath, this);
             }
         }
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Add logic to go forward in navigation history
+            VirtualDir bDir = core.BackTrack();
+            if (bDir == null) { return; }
+            else if (bDir is DeskDriver desk)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, desk.Children, fileIconPath, folderIconPath, this);
+                PathBar.Text = $"Current Path: {desk.Name}";
+            }
+            else
+            {
+                UpdatePathAndIcons(bDir);
+            }
         }
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Add logic to go forward in navigation history
+            VirtualDir fDir = core.GoForward();
+            if (fDir == null) { return; }
+            else if (fDir is DeskDriver desk)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, desk.Children, fileIconPath, folderIconPath, this);
+                PathBar.Text = $"Current Path: {desk.Name}";
+            }
+            else
+            {
+                UpdatePathAndIcons(fDir);
+            }
         }
         public void Open(VirtualDir vDir)
         {
             core.OpenNew(vDir);
-            if(vDir is VirtualFolder)
+            if (vDir is VirtualFolder)
                 UpdatePathAndIcons(vDir);
         }
         public void DeleteNode(VirtualDir target)
