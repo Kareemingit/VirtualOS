@@ -94,7 +94,6 @@ namespace VirtualOS
             }
             return icon;
         }
-
         private void AddIcon(DesktopIcon iconData)
         {
             DIcons.Add(iconData);

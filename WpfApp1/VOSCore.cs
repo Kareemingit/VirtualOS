@@ -25,7 +25,6 @@ namespace VirtualOS
         {
             return virtualDirController.driverTree;
         }
-
         public void RunRoot()
         {
             currentUserNodeIndex++;
@@ -39,7 +38,6 @@ namespace VirtualOS
             currentUserNode = CurrentPathNodes[currentUserNodeIndex];
             return currentUserNode;
         }
-
         public VirtualDir GoForward()
         {
             if (currentUserNodeIndex == CurrentPathNodes.Count - 1) return null;
@@ -47,8 +45,6 @@ namespace VirtualOS
             currentUserNode = CurrentPathNodes[currentUserNodeIndex];
             return currentUserNode;
         }
-
-
         public void OpenNewFolder(VirtualFolder folder)
         {
             if (folder == null) return;
@@ -74,5 +70,14 @@ namespace VirtualOS
 
             }
         }
+        
+        public void CreateNewFolder(string folderName , VirtualDir distinationNode)
+        {
+            string newuipath = distinationNode.UIPath + '/' + folderName;
+            string newvirtualpath = distinationNode.Virtualpath + "\\" + folderName;
+            VirtualFolder newFolder = new VirtualFolder(folderName, newvirtualpath ,newuipath);
+            virtualDirController.PlantNewItem(newFolder ,distinationNode);
+        }
+
     }
 }

@@ -20,3 +20,5 @@ D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\ref\
 D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\File Explorer.g.cs
 D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\VirtualOS_MarkupCompile.lref
 D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\File Explorer.baml
+D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\NameInputWindow.baml
+D:\01 Kareem\programing projects\VirtualOS\WpfApp1\obj\Debug\net8.0-windows\NameInputWindow.g.cs

@@ -5,11 +5,12 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Shapes;
 
 namespace VirtualOS
 {
-    //public class Properties
+    //struct Properties
     //{
     //    public int CPUusage;
     //    public double usedSpaceByts;
@@ -25,8 +26,8 @@ namespace VirtualOS
         private const string ActualPath = "D:/01 Kareem/programing projects/VirtualOS/WpfApp1/Root Desk";
         public List<VirtualDir> Children = new();
 
-        public DeskDriver(string _name, string _vpath, string uipath) :
-            base(_name, _vpath, uipath)
+        public DeskDriver(string _name, string uipath) :
+            base(_name, ActualPath, uipath)
         {
         }
 
@@ -226,7 +227,6 @@ namespace VirtualOS
     {
         public DeskDriver? driverTree;
         private static VirtualDirController? _instance;
-
         public static VirtualDirController Instance => _instance ??= new VirtualDirController();
 
         public VirtualDirController() { }
@@ -234,12 +234,53 @@ namespace VirtualOS
         {
             if (driverTree != null)
                 return;
-            DeskDriver desk = new DeskDriver("C:", "C:", "C:");
+            DeskDriver desk = new DeskDriver("C:", "C:");
             desk.Children = new List<VirtualDir>();
             desk.loadDeskTreeV2();
             driverTree = desk;
         }
 
+        private void PlantFolderToHardWare(VirtualDir folder)
+        {
+            try
+            {
+                if (!Directory.Exists(folder.Virtualpath))
+                {
+                    Directory.CreateDirectory(folder.Virtualpath);
+                }
+                else
+                {
+                    MessageBox.Show($"Folder : {folder.UIPath} is Already Exist.");
+                    return;
+                }
+            }
+            catch (Exception ex){ 
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private void PlantLaef(VirtualDir Newitem , VirtualDir distNode)
+        {
+            if(distNode is VirtualFolder f)
+            {
+                f.Children.Add(Newitem);
+            }
+            else if(distNode is DeskDriver desk)
+            {
+                desk.Children.Add(Newitem);
+            }
+        }
+        public void PlantNewItem(VirtualDir Newitem , VirtualDir distNode)
+        {
+            if(Newitem is VirtualFolder folder)
+            {
+                PlantFolderToHardWare(folder);
+            }
+            else
+            {
+
+            }
+            PlantLaef(Newitem , distNode);
+        }
 
     }
 

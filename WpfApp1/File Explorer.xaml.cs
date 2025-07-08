@@ -79,17 +79,12 @@ namespace VirtualOS
                 var newFolderItem = new MenuItem { Header = "Folder", Tag = vDir };
                 newFolderItem.Click += (s, e) =>
                 {
-                    var newFolder = new VirtualFolder("New Folder", $"{folder.Virtualpath}/New Folder", $"{folder.Virtualpath}/New Folder");
-                    folder.Children.Add(newFolder);
-                    parentWindow.RefreshSidebarAndIcons();
+                    parentWindow.CreateNewFolder(vDir);
                 };
                 var newFileItem = new MenuItem { Header = "File Document", Tag = vDir };
 
                 newFileItem.Click += (s, e) =>
                 {
-                    var newFile = new TXTFile("New File.txt", $"{folder.Virtualpath}/New File.txt", $"{folder.Virtualpath}/New File.txt");
-                    folder.Children.Add(newFile);
-                    parentWindow.RefreshSidebarAndIcons();
                 };
 
                 newSubMenu.Items.Add(newFolderItem);
@@ -173,13 +168,23 @@ namespace VirtualOS
             ExplorerUIFactory.CreatePathBar(PathBar, root.UIPath);
             ExplorerUIFactory.CreateSidebar(Sidebar, rootStructure, this);
             core.RunRoot();
-
+            currentDir = root;
             if (root is DeskDriver desk)
             {
                 ExplorerUIFactory.CreateIconViewer(IconWrapPanel, root.Children, fileIconPath, folderIconPath, this);
             }
         }
 
+        private string TakeInput()
+        {
+            string output = null;
+            var inputWindow = new NameInputWindow { Owner = this };
+            if (inputWindow.ShowDialog() == true && !string.IsNullOrEmpty(inputWindow.InputText))
+            {
+                output = inputWindow.InputText;
+            }
+            return output;
+        }
         public void RefreshSidebarAndIcons()
         {
             ExplorerUIFactory.CreateSidebar(Sidebar, Root.Children, this);
@@ -187,6 +192,10 @@ namespace VirtualOS
             if (currentDir is VirtualFolder folder)
             {
                 ExplorerUIFactory.CreateIconViewer(IconWrapPanel, folder.Children, fileIconPath, folderIconPath, this);
+            }
+            else if(currentDir is DeskDriver root)
+            {
+                ExplorerUIFactory.CreateIconViewer(IconWrapPanel, root.Children, fileIconPath, folderIconPath, this);
             }
         }
         public void UpdatePathAndIcons(VirtualDir vDir)
@@ -211,8 +220,8 @@ namespace VirtualOS
             {
                 UpdatePathAndIcons(bDir);
             }
+            currentDir = bDir;
         }
-
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
             VirtualDir fDir = core.GoForward();
@@ -226,10 +235,12 @@ namespace VirtualOS
             {
                 UpdatePathAndIcons(fDir);
             }
+            currentDir = fDir;
         }
         public void Open(VirtualDir vDir)
         {
             core.OpenNew(vDir);
+            currentDir = vDir;
             if (vDir is VirtualFolder)
                 UpdatePathAndIcons(vDir);
         }
@@ -276,12 +287,12 @@ namespace VirtualOS
             var newFolderItem = new MenuItem { Header = "Folder" };
             newFolderItem.Click += (s, args) =>
             {
+                CreateNewFolder(currentDir);
             };
 
             var newFileItem = new MenuItem { Header = "File Document" };
             newFileItem.Click += (s, args) =>
             {
-
             };
 
             newSubMenu.Items.Add(newFolderItem);
@@ -290,6 +301,15 @@ namespace VirtualOS
 
             contextMenu.Placement = PlacementMode.MousePoint;
             contextMenu.IsOpen = true;
+        }
+        public void CreateNewFolder(VirtualDir distinationNode)
+        {
+            string takeNameInput = TakeInput();
+            if (takeNameInput != null)
+            {
+                core.CreateNewFolder(takeNameInput, distinationNode);
+                RefreshSidebarAndIcons();
+            }
         }
     }
 }

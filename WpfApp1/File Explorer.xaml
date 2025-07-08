@@ -13,9 +13,6 @@
         WindowStartupLocation ="CenterScreen">
     <Grid>
         <DockPanel>
-
-            <!-- Top Path Bar (Static) -->
-            <!-- <TextBlock x:Name="PathBar" DockPanel.Dock="Top" FontSize="14" Padding="10" Background="LightGray"/> -->
             <!-- Top Path Bar with Navigation -->
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Background="LightGray">
                 <Button x:Name="BackButton" Content="←" Width="30" Margin="5,0" Click="BackButton_Click"/>
