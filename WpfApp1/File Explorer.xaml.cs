@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-
+using VirtualOS.Note_pad;
 
 namespace VirtualOS
 {
@@ -103,8 +103,14 @@ namespace VirtualOS
                 }
             };
 
-            menu.Items.Add(deleteItem);
+            var renameItem = new MenuItem { Header = "Rename .. ", Tag = vDir };
+            renameItem.Click += (s, e) =>
+            {
+                parentWindow.RenameItem(vDir);
+            };
 
+            menu.Items.Add(deleteItem);
+            menu.Items.Add(renameItem);
             return menu;
         }
         public static void CreateIconViewer(WrapPanel iconWrapPanel, List<VirtualDir> items, string fileIconPath, string folderIconPath, File_Explorer parentWindow)
@@ -241,10 +247,18 @@ namespace VirtualOS
         {
             core.OpenNew(vDir);
             currentDir = vDir;
-            if (vDir is VirtualFolder)
-                UpdatePathAndIcons(vDir);
+
+            if (vDir is TXTFile txtFile)
+            {
+                var textEditor = new NotePad(txtFile);
+                textEditor.Show();
+            }
+            else if (vDir is VirtualFolder folder)
+            {
+                UpdatePathAndIcons(folder);
+            }
         }
-        public void DeleteNode(VirtualDir target)
+        private void RemoveIcon(VirtualDir target) 
         {
             if (currentDir == null)
             {
@@ -272,6 +286,11 @@ namespace VirtualOS
                 }
             }
             // Update UI
+        }
+        public void DeleteNode(VirtualDir target)
+        {
+            core.DeleteNode(target);
+            RemoveIcon(target);
             RefreshSidebarAndIcons();
         }
         private void MainScrollViewer_RightClick(object sender, MouseButtonEventArgs e)
@@ -308,6 +327,15 @@ namespace VirtualOS
             if (takeNameInput != null)
             {
                 core.CreateNewFolder(takeNameInput, distinationNode);
+                RefreshSidebarAndIcons();
+            }
+        }
+        public void RenameItem(VirtualDir virtualDir)
+        {
+            string NewName = TakeInput();
+            if (NewName != null)
+            {
+                core.RenameItem(virtualDir, NewName);
                 RefreshSidebarAndIcons();
             }
         }

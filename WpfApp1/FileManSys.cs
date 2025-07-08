@@ -57,7 +57,7 @@ namespace VirtualOS
                 }
                 else
                 {
-                    vFile = new VirtualFile(file.Name, file.FullName, file.Extension, "tst");
+                    vFile = new UnSupportedFile(file.Name, file.FullName, file.Extension, "tst");
                 }
 
                 list.Add(vFile);
@@ -119,10 +119,11 @@ namespace VirtualOS
                     if (file.Extension == ".txt")
                     {
                         vFile = new TXTFile(file.Name, file.FullName, CurrUIPath);
+                        vFile.Load(vFile.Virtualpath);
                     }
                     else
                     {
-                        vFile = new VirtualFile(file.Name, file.FullName, file.Extension, CurrUIPath);
+                        vFile = new UnSupportedFile(file.Name, file.FullName, file.Extension, CurrUIPath);
                     }
                     currentVirtualFolder.Children.Add(vFile);
                 }
@@ -131,22 +132,7 @@ namespace VirtualOS
             // Attach root folder to DeskDriver
             Children = rootFolder.Children;
         }
-        public void Open()
-        {
 
-        }
-        public void AddChild(VirtualDir child)
-        {
-
-        }
-        public void DeleteChild(VirtualDir child)
-        {
-
-        }
-        public void Close()
-        {
-
-        }
     }
 
     public abstract class VirtualDir
@@ -161,56 +147,65 @@ namespace VirtualOS
             UIPath = uipath;
         }
 
-        public virtual void Create(string Vpath)
-        {
-
-        }
-        public virtual void Open(string Vpath)
-        {
-
-        }
-
-        public virtual void Close()
-        {
-        }
-
-        public virtual void Delete(string Vpath)
-        {
-
-        }
-
     }
 
-    public class VirtualFile : VirtualDir
+    public abstract class VirtualFile : VirtualDir
     {
         public string extention;
+        protected string Content;
         public VirtualFile(string? _name, string? _virtualpath, string extention, string uipath) :
             base(_name, _virtualpath, uipath)
         {
             this.extention = extention;
+            this.Content = "";
         }
-    }
-
-    public class VirtualIOFile : VirtualFile
-    {
-        public VirtualIOFile(string? _name, string? _virtualpath, string ext, string uipath) :
-            base(_name, _virtualpath, ext, uipath)
-        { }
-    }
-
-    public class VirtualAppFile : VirtualFile
-    {
-        public VirtualAppFile(string? _name, string? _virtualpath, string uipath) :
-            base(_name, _virtualpath, null, uipath)
-        { }
+        public abstract string Read();
+        public abstract void Write(string newContent , string distPath);
+        public abstract void Load(string sourcePath);
     }
 
     public class TXTFile : VirtualFile
     {
-        public TXTFile(string? _name, string? _virtualpath, string uipath) :
+        public TXTFile(string? _name , string? _virtualpath, string uipath) :
             base(_name, _virtualpath, ".txt", uipath)
         { }
+
+        public override string Read()
+        {
+            return this.Content;
+        }
+        public override void Write(string newContent , string distPath)
+        {
+            this.Content = newContent;
+            File.WriteAllText(distPath, this.Content);
+        }
+        public override void Load(string sourcePath)
+        {
+            string fileContent = File.ReadAllText(sourcePath);
+            this.Content = fileContent;
+        }
     }
+
+    public class UnSupportedFile : VirtualFile
+    {
+        public UnSupportedFile(string? _name, string? _virtualpath, string ext, string uipath) :
+            base(_name, _virtualpath, ext, uipath)
+        { }
+
+        public override string Read()
+        {
+            return null;
+        }
+        public override void Write(string newContent , string distPath)
+        {
+
+        }
+        public override void Load(string sourcePath)
+        {
+
+        }
+    }
+
 
     public class VirtualFolder : VirtualDir
     {
@@ -239,7 +234,6 @@ namespace VirtualOS
             desk.loadDeskTreeV2();
             driverTree = desk;
         }
-
         private void PlantFolderToHardWare(VirtualDir folder)
         {
             try
@@ -269,6 +263,63 @@ namespace VirtualOS
                 desk.Children.Add(Newitem);
             }
         }
+        private void uprootingFolderFromHardWare(VirtualFolder folder)
+        {
+            try
+            {
+                if (Directory.Exists(folder.Virtualpath))
+                {
+                    Directory.Delete(folder.Virtualpath, true);
+                }
+                else
+                {
+                    MessageBox.Show($"Folder : {folder.UIPath} is Already Exist.");
+                    return;
+                }
+            }
+            catch(IOException ioEx)
+            {
+                MessageBox.Show(ioEx.Message);
+            }
+        }
+        private bool uprootingFolderFromTree(VirtualDir currentParent, VirtualDir itemToDelete)
+        {
+            if (currentParent == null) return false;
+            List<VirtualDir>? childrenList = null;
+
+            if (currentParent is VirtualFolder folder)
+            {
+                childrenList = folder.Children;
+            }
+            else if (currentParent is DeskDriver desk)
+            {
+                childrenList = desk.Children;
+            }
+
+            if (childrenList != null)
+            {
+                
+                int initialCount = childrenList.Count;
+                childrenList.RemoveAll(child => child == itemToDelete);
+                if (childrenList.Count < initialCount)
+                {
+                    itemToDelete = null;
+                    return true;
+                }
+                
+                foreach (var child in childrenList)
+                {
+                    if (child is VirtualFolder || child is DeskDriver)
+                    {
+                        if (uprootingFolderFromTree(child, itemToDelete))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
         public void PlantNewItem(VirtualDir Newitem , VirtualDir distNode)
         {
             if(Newitem is VirtualFolder folder)
@@ -281,16 +332,11 @@ namespace VirtualOS
             }
             PlantLaef(Newitem , distNode);
         }
-
-    }
-
-    public class FileSysWacher
-    {
-
-    }
-
-    public class VirtualLoader
-    {
+        public void DeleteFolder(VirtualFolder folder)
+        {
+            uprootingFolderFromHardWare(folder);
+            uprootingFolderFromTree(driverTree ,folder);
+        }
 
     }
 }

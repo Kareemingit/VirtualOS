@@ -8,5 +8,8 @@
     <Compile Update="NameInputWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Note pad\NotePad.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

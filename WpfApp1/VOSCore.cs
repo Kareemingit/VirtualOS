@@ -53,7 +53,7 @@ namespace VirtualOS
                 CurrentPathNodes.RemoveRange(currentUserNodeIndex + 1, CurrentPathNodes.Count - (currentUserNodeIndex + 1));
             }
             CurrentPathNodes.Add(folder);
-            folder.Open(folder.Virtualpath);
+            //folder.Open(folder.Virtualpath);
             currentUserNode = folder;
             currentUserNodeIndex++;
         }
@@ -70,7 +70,6 @@ namespace VirtualOS
 
             }
         }
-        
         public void CreateNewFolder(string folderName , VirtualDir distinationNode)
         {
             string newuipath = distinationNode.UIPath + '/' + folderName;
@@ -78,6 +77,21 @@ namespace VirtualOS
             VirtualFolder newFolder = new VirtualFolder(folderName, newvirtualpath ,newuipath);
             virtualDirController.PlantNewItem(newFolder ,distinationNode);
         }
+        public void RenameItem(VirtualDir vDir , string newName)
+        {
 
+        }
+        public void DeleteNode(VirtualDir target)
+        {
+            if(target == null) return;
+            if (target is VirtualFolder folder)
+            {
+                virtualDirController.DeleteFolder(folder);
+            }
+            else
+            {
+
+            }
+        }
     }
 }

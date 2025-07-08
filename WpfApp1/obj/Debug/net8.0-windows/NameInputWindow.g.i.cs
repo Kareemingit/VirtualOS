@@ -60,7 +60,7 @@ namespace VirtualOS {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/VirtualOS;component/nameinputwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/VirtualOS;V1.0.0.0;component/nameinputwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\NameInputWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
