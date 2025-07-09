@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 
 namespace VirtualOS
@@ -223,7 +224,7 @@ namespace VirtualOS
         public DeskDriver? driverTree;
         private static VirtualDirController? _instance;
         public static VirtualDirController Instance => _instance ??= new VirtualDirController();
-
+        private VirtualDir userTempStorage = null;
         public VirtualDirController() { }
         public void StartLoader()
         {
@@ -249,6 +250,25 @@ namespace VirtualOS
                 }
             }
             catch (Exception ex){ 
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private void PlantFileToHardWare(VirtualDir file)
+        {
+            try
+            {
+                if (!File.Exists(file.Virtualpath))
+                {
+                    File.Create(file.Virtualpath);
+                }
+                else
+                {
+                    MessageBox.Show($"File : {file.UIPath} is Already Exist.");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
                 MessageBox.Show(ex.Message);
             }
         }
@@ -320,15 +340,62 @@ namespace VirtualOS
             }
             return false;
         }
+        private void uprootingFileFromHardWare(VirtualFile file)
+        {
+            try
+            {
+                if(file is null) return;
+                if (File.Exists(file.Virtualpath))
+                {
+                    File.Delete(file.Virtualpath);
+                }
+                else
+                {
+                    MessageBox.Show($"File : {file.UIPath} does not exist.");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+        private void uprootingFileFromTree(VirtualDir currentParent, VirtualDir itemToDelete)
+        {
+            if(currentParent is null) return;
+            List<VirtualDir>? childrenList = null;
+
+            if (currentParent is VirtualFolder folder)
+            {
+                childrenList = folder.Children;
+            }
+            else if (currentParent is DeskDriver desk)
+            {
+                childrenList = desk.Children;
+            }
+            if (childrenList != null)
+            {
+                int currChildrenNumber = childrenList.Count;
+                childrenList.RemoveAll(child => child == itemToDelete);
+                if (childrenList.Count < currChildrenNumber)
+                    return;
+                foreach (var item in childrenList)
+                {
+                    if(item is VirtualFolder || item is DeskDriver){
+                        uprootingFolderFromTree(item, itemToDelete);
+                    }
+                }
+            }
+        }
         public void PlantNewItem(VirtualDir Newitem , VirtualDir distNode)
         {
             if(Newitem is VirtualFolder folder)
             {
                 PlantFolderToHardWare(folder);
             }
-            else
+            else if(Newitem is VirtualFile file)
             {
-
+                PlantFileToHardWare(file);
             }
             PlantLaef(Newitem , distNode);
         }
@@ -336,6 +403,11 @@ namespace VirtualOS
         {
             uprootingFolderFromHardWare(folder);
             uprootingFolderFromTree(driverTree ,folder);
+        }
+        public void DeleteFile(VirtualFile file) 
+        {
+            uprootingFileFromHardWare(file);
+            uprootingFileFromTree(driverTree,file);
         }
 
     }

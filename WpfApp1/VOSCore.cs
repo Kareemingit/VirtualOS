@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -77,20 +78,33 @@ namespace VirtualOS
             VirtualFolder newFolder = new VirtualFolder(folderName, newvirtualpath ,newuipath);
             virtualDirController.PlantNewItem(newFolder ,distinationNode);
         }
+        public void CreateNewFile(string fileName , VirtualDir distinationNode)
+        {
+            VirtualFile newFile = null;
+            string newuipth = distinationNode.UIPath + '/' + fileName;
+            string newvirtualpth = distinationNode.Virtualpath + "\\" + fileName;
+            if (Path.GetExtension(fileName) == ".txt")
+            {
+                newFile = new TXTFile(fileName, newvirtualpth, newuipth);
+            }
+            
+            else {
+                newFile = new UnSupportedFile(fileName , newvirtualpth , ".txt" , newuipth);
+            }
+            virtualDirController.PlantNewItem(newFile ,distinationNode);
+        }
         public void RenameItem(VirtualDir vDir , string newName)
         {
-
+            vDir.Name = newName;
         }
         public void DeleteNode(VirtualDir target)
         {
             if(target == null) return;
-            if (target is VirtualFolder folder)
-            {
+            if (target is VirtualFolder folder){
                 virtualDirController.DeleteFolder(folder);
             }
-            else
-            {
-
+            else if(target is VirtualFile file){
+                virtualDirController.DeleteFile(file);
             }
         }
     }
