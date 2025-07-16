@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using VirtualOS.Invisable_ink;
 
 namespace VirtualOS
 {
@@ -53,7 +54,6 @@ namespace VirtualOS
 
     public partial class MainWindow : Window
     {
-        //public VirtualDirController controller = new VirtualDirController();
         private FileManager fileManager = new FileManager();
         public File_Explorer explorer = null;
 
@@ -67,6 +67,7 @@ namespace VirtualOS
             Wallpaper.Source = DefaultWallpaper;
             fileManager.Load();
             AddIcon(GenerateDeskTopIcon("Exeproer", IconType.DEFAULT));
+            AddIcon(GenerateDeskTopIcon("Invisable Ink", IconType.APP));
         }
         private DesktopIcon GenerateDeskTopIcon(string name, IconType iconType)
         {
@@ -76,6 +77,10 @@ namespace VirtualOS
             if (icon.IconType == IconType.DEFAULT)
             {
                 icon.IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\fileexp.png";
+            }
+            if(icon.IconType == IconType.APP)
+            {
+                icon.IconPath = @"D:\01 Kareem\programing projects\VirtualOS\WpfApp1\Assets\icons\ChatAppIcon.png";
             }
             if (DIcons.Count == 0)
             {
@@ -153,11 +158,19 @@ namespace VirtualOS
         {
             if (sender is MenuItem menuItem && menuItem.DataContext is DesktopIcon icon)
             {
-                var root = fileManager.GetRoot();
-                if (root != null)
+                if (icon.Name == "Exeproer")
                 {
-                    explorer = new File_Explorer(root, root.Children);
-                    explorer.Show();
+                    var root = fileManager.GetRoot();
+                    if (root != null)
+                    {
+                        explorer = new File_Explorer(root, root.Children);
+                        explorer.Show();
+                    }
+                }
+                else if (icon.Name == "Invisable Ink")
+                {
+                    var chatWindow = new InvisableInk();
+                    chatWindow.Show();
                 }
             }
         }

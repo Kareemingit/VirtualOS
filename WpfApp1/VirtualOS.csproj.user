@@ -5,6 +5,9 @@
     <Compile Update="File Explorer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Invisable ink\InvisableInk.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="NameInputWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

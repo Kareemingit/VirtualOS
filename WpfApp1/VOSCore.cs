@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VirtualOS.Commuication;
 
 namespace VirtualOS
 {
@@ -108,4 +109,48 @@ namespace VirtualOS
             }
         }
     }
+
+
+    public interface IAppCommunicator
+    {
+        public void ClientServerHandshake();
+    }
+
+    public class AppController
+    {
+        private Client client;
+        private static Server? serverinstanc;
+        public event Action<string> MessageReceived;
+        public AppController()
+        {
+            
+        }
+        public void StartServer()
+        {
+            if(serverinstanc == null)
+                serverinstanc = new Server();
+        }
+        public void SetClient(Client _client)
+        {
+            client = _client;
+            client.MessageReceived += OnMessageReceived;
+            _ = client.ListenForMessages();
+        }
+        private void OnMessageReceived(string message)
+        {
+            MessageReceived?.Invoke(message); // Propagate to UI
+        }
+
+        public void ChangeUserName(string newName , string oldName)
+        {
+            serverinstanc.ChangeAUserNameKey(oldName, newName);
+            client.putUserName(newName);
+        }
+
+        public async Task SendMessage(string message, string targetUser)
+        {
+            await client.SendMessage(targetUser , message);
+        }
+    }
 }
+
