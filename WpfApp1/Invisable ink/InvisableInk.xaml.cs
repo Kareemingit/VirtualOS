@@ -19,7 +19,7 @@ namespace VirtualOS.Invisable_ink
     /// <summary>
     /// Interaction logic for InvisableInk.xaml
     /// </summary>
-    /// 
+    ///
 
     public partial class InvisableInk : Window
     {
@@ -27,6 +27,7 @@ namespace VirtualOS.Invisable_ink
         Client UIOwner;
         string username;
         static int windowsCount = 0;
+        bool isUserContacted = false;
         public InvisableInk()
         {
             InitializeComponent();
@@ -50,17 +51,17 @@ namespace VirtualOS.Invisable_ink
             {
                 appController.ChangeUserName(newUserName , username);
                 System.Windows.MessageBox.Show($"Username changed to {newUserName}");
+                username = newUserName;
             }
             else
             {
                 System.Windows.MessageBox.Show("Please enter a new username.");
             }
         }
-
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
             string message = MessageBox.Text.Trim();
-            if (!string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(message) || !isUserContacted)
             {
                 string targetedUser = UserTextbox.Text;
                 if (!string.IsNullOrEmpty(targetedUser))
@@ -73,8 +74,6 @@ namespace VirtualOS.Invisable_ink
                     System.Windows.MessageBox.Show("Client : Please enter Username of user you want");
             }
         }
-
-        
         private void AppendChat(string message)
         {
             Dispatcher.Invoke(() =>
@@ -82,6 +81,19 @@ namespace VirtualOS.Invisable_ink
                 ChatBox.AppendText(message + "\n");
                 ChatBox.ScrollToEnd();
             });
+        }
+
+        private async void Contact_Click(object sender, RoutedEventArgs e)
+        {
+            isUserContacted = true;
+            string targetedUser = UserTextbox.Text;
+            if (!string.IsNullOrEmpty(targetedUser))
+                await appController.SetUpSession(targetedUser);
+        }
+
+        private void Change_Peer(object sender, TextChangedEventArgs e)
+        {
+            isUserContacted = false;
         }
     }
 }

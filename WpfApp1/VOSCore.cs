@@ -18,7 +18,6 @@ namespace VirtualOS
         private List<VirtualDir> CurrentPathNodes = new();
         private VirtualDir? currentUserNode;
         private int currentUserNodeIndex = -1;
-
         public void Load()
         {
             virtualDirController.StartLoader();
@@ -135,21 +134,24 @@ namespace VirtualOS
             client = _client;
             client.MessageReceived += OnMessageReceived;
             _ = client.ListenForMessages();
+            _ = client.ListenForSessionRequest();
         }
         private void OnMessageReceived(string message)
         {
             MessageReceived?.Invoke(message); // Propagate to UI
         }
-
         public void ChangeUserName(string newName , string oldName)
         {
             serverinstanc.ChangeAUserNameKey(oldName, newName);
             client.putUserName(newName);
         }
-
         public async Task SendMessage(string message, string targetUser)
         {
             await client.SendMessage(targetUser , message);
+        }
+        public async Task SetUpSession(string targetuser)
+        {
+            await client.SendSessionRequest(targetuser);
         }
     }
 }
