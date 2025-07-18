@@ -134,7 +134,7 @@ namespace VirtualOS
             client = _client;
             client.MessageReceived += OnMessageReceived;
             _ = client.ListenForMessages();
-            _ = client.ListenForSessionRequest();
+            
         }
         private void OnMessageReceived(string message)
         {

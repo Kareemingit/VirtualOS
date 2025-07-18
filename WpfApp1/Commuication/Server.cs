@@ -6,12 +6,17 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 
 namespace VirtualOS.Commuication
 {
+    public class BaseMessageType
+    {
+        public string Type { get; set; }
+    }
     public class Server
     {
         private TcpListener listener;
@@ -51,17 +56,58 @@ namespace VirtualOS.Commuication
             {
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 if (bytesRead == 0) break;
-                var rqst = IRequest.DeserializeRequest(buffer);
-                if(rqst.Type == "SessionRequest")
+
+                byte[] actualData = buffer.Take(bytesRead).ToArray();
+                string json = Encoding.UTF8.GetString(actualData);
+
+                BaseMessageType baseType;
+                try
                 {
-                    await HandleSessionRequest(rqst);
+                    baseType = JsonSerializer.Deserialize<BaseMessageType>(json);
                 }
-                var msg = IMessage.DeserializeMessage(buffer.Take(bytesRead).ToArray());
-                if (clients.TryGetValue(msg.TargetUser, out Client targetClient))
+                catch (Exception ex)
                 {
-                    byte[] forwardBytes = IMessage.SerializeMessage(msg);
-                    await targetClient.GetClientStream().WriteAsync(forwardBytes, 0, forwardBytes.Length);
+                    MessageBox.Show($"Server : Failed to parse message type: {ex.Message}");
+                    continue;
                 }
+
+                if (baseType == null || string.IsNullOrEmpty(baseType.Type))
+                    continue;
+
+                switch (baseType.Type)
+                {
+                    case "SessionRequest":
+                        var sessionRequest = JsonSerializer.Deserialize<SessionRequest>(json);
+                        await HandleSessionRequest(sessionRequest);
+                        break;
+
+                    case "SessionKeyResponse":
+                        var sessionKeyResponse = JsonSerializer.Deserialize<SessionKeyResponse>(json);
+                        await ForwardSessionKeyResponse(sessionKeyResponse);
+                        break;
+
+                    case "Message":
+                        var message = JsonSerializer.Deserialize<Message>(json);
+                        if (clients.TryGetValue(message.TargetUser, out Client targetClient))
+                        {
+                            byte[] forwardBytes = Encoding.UTF8.GetBytes(json);
+                            await targetClient.GetClientStream().WriteAsync(forwardBytes, 0, forwardBytes.Length);
+                        }
+                        break;
+
+                    default:
+                        MessageBox.Show($"Server : Unknown message type: {baseType.Type}");
+                        break;
+                }
+            }
+        }
+
+        private async Task ForwardSessionKeyResponse(SessionKeyResponse response)
+        {
+            if (clients.TryGetValue(response.TargetUser, out Client targetClient))
+            {
+                byte[] data = IResponse.SerializeResponse(response);
+                await targetClient.GetClientStream().WriteAsync(data, 0, data.Length);
             }
         }
 
