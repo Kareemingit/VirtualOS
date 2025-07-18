@@ -10,7 +10,11 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
-    <Folder Include="Root Desk\" />
+    <Folder Include="Root Desk\Desktop\" />
+    <Folder Include="Root Desk\Downloads\" />
+    <Folder Include="Root Desk\Documents\" />
+    <Folder Include="Root Desk\Pictures\Camera\" />
+    <Folder Include="Root Desk\Pictures\Saved Pictures\" />
   </ItemGroup>
 
 </Project>

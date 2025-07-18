@@ -110,11 +110,6 @@ namespace VirtualOS
     }
 
 
-    public interface IAppCommunicator
-    {
-        public void ClientServerHandshake();
-    }
-
     public class AppController
     {
         private Client client;
@@ -134,7 +129,6 @@ namespace VirtualOS
             client = _client;
             client.MessageReceived += OnMessageReceived;
             _ = client.ListenForMessages();
-            
         }
         private void OnMessageReceived(string message)
         {

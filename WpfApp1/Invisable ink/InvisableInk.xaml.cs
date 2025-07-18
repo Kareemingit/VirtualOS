@@ -82,7 +82,6 @@ namespace VirtualOS.Invisable_ink
                 ChatBox.ScrollToEnd();
             });
         }
-
         private async void Contact_Click(object sender, RoutedEventArgs e)
         {
             isUserContacted = true;
@@ -90,7 +89,6 @@ namespace VirtualOS.Invisable_ink
             if (!string.IsNullOrEmpty(targetedUser))
                 await appController.SetUpSession(targetedUser);
         }
-
         private void Change_Peer(object sender, TextChangedEventArgs e)
         {
             isUserContacted = false;

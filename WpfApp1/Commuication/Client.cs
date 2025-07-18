@@ -10,9 +10,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+
+
 namespace VirtualOS.Commuication
 {
-
     [Serializable]
     public struct Message
     {
@@ -21,7 +22,6 @@ namespace VirtualOS.Commuication
         public string TargetUser { get; set; }
         public string Content { get; set; }
     }
-
     public struct SessionRequest
     {
         public string Type { get; set; }
@@ -29,7 +29,6 @@ namespace VirtualOS.Commuication
         public string TargetUser { get; set; }
         public string PublicKey { get; set; }
     }
-
     public struct SessionKeyResponse
     {
         public string Type { get; set; }
@@ -38,13 +37,11 @@ namespace VirtualOS.Commuication
         public byte[] EncryptedKey { get; set; }
         public byte[] EncryptedIv { get; set; }
     }
-
     public class SessionData
     {
         public byte[] Key { get; set; }
         public byte[] Iv { get; set; }
     }
-
     public static class IMessage
     {
         public static byte[] SerializeMessage(Message message)
@@ -58,7 +55,6 @@ namespace VirtualOS.Commuication
             return JsonSerializer.Deserialize<Message>(json);
         }
     }
-    
     public static class IRequest
     {
         public static byte[] SerializeRequest(SessionRequest request)
@@ -72,7 +68,6 @@ namespace VirtualOS.Commuication
             return JsonSerializer.Deserialize<SessionRequest>(json);
         }
     }
-
     public static class IResponse
     {
         public static byte[] SerializeResponse(SessionKeyResponse response)
@@ -114,7 +109,6 @@ namespace VirtualOS.Commuication
         {
             await ConnectAsync(SERVER_IP, SERVER_PORT);
             stream = GetStream();
-            _ = ListenForSessionRequestAndResponse();
             // Send username immediately after connecting
             byte[] userNameBytes = Encoding.UTF8.GetBytes(userName);
             await stream.WriteAsync(userNameBytes, 0, userNameBytes.Length);
@@ -148,30 +142,6 @@ namespace VirtualOS.Commuication
                 await Task.Delay(50);
             }
             byte[] buffer = new byte[1024];
-            while (true)
-            {
-                int bufferCount = await stream.ReadAsync(buffer, 0, buffer.Length);
-                if (bufferCount == 0) break;
-
-                string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bufferCount);
-                
-                try
-                {
-                    var messageObj = JsonSerializer.Deserialize<Message>(jsonMessage);
-                    //decrypt messageObj.Content session key
-                    string formatted = $"{messageObj.Sender} : {messageObj.Content}";
-                    MessageReceived?.Invoke(formatted);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Deserialization error: {ex.Message}");
-                }
-            }
-        }
-
-        public async Task ListenForSessionRequestAndResponse()
-        {
-            byte[] buffer = new byte[1024];
             
             while (true)
             {
@@ -204,13 +174,40 @@ namespace VirtualOS.Commuication
                         ProcessSessionKeyResponse(resp);
                         break;
 
+                    case "Message":
+                        var messageObj = JsonSerializer.Deserialize<Message>(json);
+                        //decrypt messageObj.Content session key
+                        if (CurrentOpenSessions.TryGetValue(messageObj.Sender,out SessionData sessionData)) {
+                            byte[] messageBytes = Convert.FromBase64String(messageObj.Content);
+                            string decryptedMessage = Decrypt(messageBytes, sessionData.Key, sessionData.Iv);
+                            string formatted = $"{messageObj.Sender} : {decryptedMessage}";
+                            MessageReceived?.Invoke(formatted);
+                        }
+                        break;
+
                     default:
                         MessageBox.Show($"Client : Unknown message type: {messageType.Type}");
                         break;
                 }
             }
         }
-
+        private string Decrypt(byte[] encryptedPassword, byte[] key, byte[] iv)
+        {
+            string simpletext = String.Empty;
+            using (Aes aes = Aes.Create())
+            {
+                ICryptoTransform decryptor = aes.CreateDecryptor(key, iv);
+                using (MemoryStream memoryStream = new MemoryStream(encryptedPassword))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader reader = new StreamReader(cryptoStream))
+                            simpletext = reader.ReadToEnd();
+                    }
+                }
+            }
+            return simpletext;
+        }
         private void ProcessSessionKeyResponse(SessionKeyResponse response)
         {
             byte[] sessionKey = DecryptWithPrivateKey(response.EncryptedKey);
@@ -225,7 +222,6 @@ namespace VirtualOS.Commuication
 
             CurrentOpenSessions[response.Sender] = combined;
         }
-
         private byte[] DecryptWithPrivateKey(byte[] encryptedKey)
         {
             byte[] decryptedKey;
@@ -236,7 +232,6 @@ namespace VirtualOS.Commuication
             }
             return decryptedKey;
         }
-
         public NetworkStream GetClientStream()
         {
             return stream;
@@ -309,9 +304,12 @@ namespace VirtualOS.Commuication
             };
 
             byte[] responseBytes = IResponse.SerializeResponse(keyResponse);
+            CurrentOpenSessions[request.Sender] = new SessionData { 
+                Key = key[0],
+                Iv = key[1]
+            };
             await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
         }
-
         private byte[] EncryptSessionKey(string publicKey , byte[] key)
         {
             byte[] encryptedKey;

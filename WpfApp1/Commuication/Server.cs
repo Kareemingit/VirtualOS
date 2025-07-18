@@ -28,7 +28,6 @@ namespace VirtualOS.Commuication
             listener = new TcpListener(IPAddress.Any, PORT);
             _ = StartListening();
         }
-
         private async Task StartListening()
         {
             listener.Start();
@@ -101,7 +100,6 @@ namespace VirtualOS.Commuication
                 }
             }
         }
-
         private async Task ForwardSessionKeyResponse(SessionKeyResponse response)
         {
             if (clients.TryGetValue(response.TargetUser, out Client targetClient))
@@ -110,7 +108,6 @@ namespace VirtualOS.Commuication
                 await targetClient.GetClientStream().WriteAsync(data, 0, data.Length);
             }
         }
-
         private async Task HandleSessionRequest(SessionRequest request)
         {
             if (clients.TryGetValue(request.TargetUser, out Client targetClient))
@@ -119,7 +116,6 @@ namespace VirtualOS.Commuication
                 await targetClient.GetClientStream().WriteAsync(forwardBytes, 0, forwardBytes.Length);
             }
         }
-
         public void ChangeAUserNameKey(string oldName, string newName)
         {
             if (clients.TryGetValue(oldName, out Client client) && !clients.ContainsKey(newName))
