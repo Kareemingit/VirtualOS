@@ -53,7 +53,7 @@ namespace VirtualOS.Commuication
 
             while (true)
             {
-                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                int bytesRead = await stream.ReadAsync(buffer , 0 , buffer.Length);
                 if (bytesRead == 0) break;
 
                 byte[] actualData = buffer.Take(bytesRead).ToArray();
@@ -85,6 +85,18 @@ namespace VirtualOS.Commuication
                         await ForwardSessionKeyResponse(sessionKeyResponse);
                         break;
 
+                    case "MetaData":
+                        var MetaData = JsonSerializer.Deserialize<MetaData>(json);
+                        buffer = new byte[MetaData.FileLength + 1024];
+                        await ForwardFileMetaData(MetaData);
+                        break;
+
+                    case "FileTransfer":
+                        var File = JsonSerializer.Deserialize<FileDataCarrier>(json);
+                        buffer = new byte[4096];
+                        await ForwardFile(File);
+                        break;
+
                     case "Message":
                         var message = JsonSerializer.Deserialize<Message>(json);
                         if (clients.TryGetValue(message.TargetUser, out Client targetClient))
@@ -105,6 +117,24 @@ namespace VirtualOS.Commuication
             if (clients.TryGetValue(response.TargetUser, out Client targetClient))
             {
                 byte[] data = IResponse.SerializeResponse(response);
+                await targetClient.GetClientStream().WriteAsync(data, 0, data.Length);
+            }
+        }
+        
+        private async Task ForwardFileMetaData(MetaData metaData)
+        {
+            if (clients.TryGetValue(metaData.TargetUser, out Client targetClient))
+            {
+                string strdata = JsonSerializer.Serialize(metaData);
+                byte[] data = Encoding.UTF8.GetBytes(strdata);
+                await targetClient.GetClientStream().WriteAsync(data, 0, data.Length);
+            }
+        }
+        private async Task ForwardFile(FileDataCarrier file)
+        {
+            if (clients.TryGetValue(file.TargetUser, out Client targetClient))
+            {
+                byte[] data = IFile.SerializeFile(file);
                 await targetClient.GetClientStream().WriteAsync(data, 0, data.Length);
             }
         }

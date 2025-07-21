@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VirtualOS.Invisable_ink"
         mc:Ignorable="d"
-        Title="InvisableInk" Height="350" Width="525">
+        Title="Invisable Ink" Height="350" Width="525">
     <Grid>
         <TextBox Name="ChatBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Margin="10,70,10,80"/>
         <!-- footer controls -->
-        <TextBox Name="MessageBox" Height="30" Margin="10,0,160,30" VerticalAlignment="Bottom"/>
+        <TextBox Name="IMessageBox" Height="30" Margin="10,0,160,30" VerticalAlignment="Bottom"/>
         <Button Name="SendButton" Content="Send" Width="70" Height="30" Margin="0,0,85,30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="SendButton_Click"/>
-        <Button x:Name="SendButton_Copy" Content="Send File" Width="70" Height="30" Margin="0,0,10,30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="SendButton_Click"/>
+        <Button x:Name="SendFileButton" Content="Send File" Width="70" Height="30" Margin="0,0,10,30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="SendFileButton_Click"/>
         <!-- contact with.. -->
         <TextBox Name="UserTextbox" HorizontalAlignment="Left" Margin="108,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="Change_Peer"/>
         <Label Content="User:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>

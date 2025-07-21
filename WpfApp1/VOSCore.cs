@@ -147,6 +147,10 @@ namespace VirtualOS
         {
             await client.SendSessionRequest(targetuser);
         }
+        public async Task SendFile(string Filepath , string target)
+        {
+            await client.SendFile(target, Filepath);
+        }
     }
 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
@@ -36,6 +37,21 @@ namespace VirtualOS.Commuication
         public string TargetUser { get; set; }
         public byte[] EncryptedKey { get; set; }
         public byte[] EncryptedIv { get; set; }
+    }
+    public struct MetaData
+    {
+        public string Type { get; set; }
+        public string FileName { get; set; }
+        public string Sender { get; set; }
+        public string TargetUser { get; set; }
+        public long FileLength { get; set; }
+    }
+    public struct FileDataCarrier
+    {
+        public string Type { get; set; }
+        public string Sender { get; set; }
+        public string TargetUser { get; set; }
+        public byte[] Data { get; set; }
     }
     public class SessionData
     {
@@ -81,10 +97,23 @@ namespace VirtualOS.Commuication
             return JsonSerializer.Deserialize<SessionKeyResponse>(json);
         }
     }
-    
+    public static class IFile
+    {
+        public static byte[] SerializeFile(FileDataCarrier fileDataCarrier)
+        {
+            string json = JsonSerializer.Serialize(fileDataCarrier);
+            return Encoding.UTF8.GetBytes(json);
+        }
+        public static FileDataCarrier DeserializeFile(byte[] data)
+        {
+            string json = Encoding.UTF8.GetString(data);
+            return JsonSerializer.Deserialize<FileDataCarrier>(json);
+        }
+    }
     public class Client : TcpClient
     {
         public string userName;
+        public long MessageLength;
         private string SERVER_IP;
         private int SERVER_PORT;
         private NetworkStream stream;
@@ -126,7 +155,7 @@ namespace VirtualOS.Commuication
                     TargetUser = target,
                     PublicKey = pubKey
                 };
-
+                MessageLength = 4096;
                 byte[] data = IRequest.SerializeRequest(SessionRequest);
                 await stream.WriteAsync(data, 0, data.Length);
             }
@@ -174,6 +203,17 @@ namespace VirtualOS.Commuication
                         ProcessSessionKeyResponse(resp);
                         break;
 
+                    case "MetaData":
+                        var md = JsonSerializer.Deserialize<MetaData>(json);
+                        buffer = new byte[md.FileLength + 1024];
+                        break;
+
+                    case "FileTransfer":
+                        var file = JsonSerializer.Deserialize<FileDataCarrier>(json);
+                        buffer = new byte[1024];
+                        MessageReceived?.Invoke($"{file.Sender} : File Recieved successfully " +
+                            $"\nContent : \n{Encoding.UTF8.GetString(file.Data)}");
+                        break;
                     case "Message":
                         var messageObj = JsonSerializer.Deserialize<Message>(json);
                         //decrypt messageObj.Content session key
@@ -275,9 +315,54 @@ namespace VirtualOS.Commuication
                 TargetUser = targetuser,
                 Content = encryptedmessageText
             };
+            
             byte[] messageBytes = IMessage.SerializeMessage(message);
             
             await stream.WriteAsync(messageBytes, 0, messageBytes.Length);
+        }
+        private async Task SendFileMetaData(MetaData metaData , string target)
+        {
+            string json = JsonSerializer.Serialize(metaData);
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            await stream.WriteAsync(bytes);
+        }
+        public async Task SendFile(string targetuser, string Filepath)
+        {
+            if (CurrentOpenSessions.TryGetValue(targetuser, out SessionData session))
+            {
+                FileInfo fileInfo = new FileInfo(Filepath);
+                byte[] encryptedContent;
+                
+                //encrypt content
+                byte[] content = File.ReadAllBytes(Filepath);
+                encryptedContent = content;
+
+                FileDataCarrier fileData = new FileDataCarrier
+                {
+                    Type = "FileTransfer",
+                    Sender = userName,
+                    TargetUser = targetuser,
+                    Data = encryptedContent
+                };
+                byte[] fileByts = IFile.SerializeFile(fileData);
+                MetaData meta = new MetaData
+                {
+                    Type = "MetaData",
+                    Sender = userName,
+                    TargetUser = targetuser,
+                    FileName = fileInfo.Name,
+                    FileLength = fileByts.Length
+                };
+                _ = SendFileMetaData(meta, targetuser);
+                
+
+                await stream.WriteAsync(fileByts, 0, fileByts.Length);
+            }
+            else
+            {
+                MessageBox.Show("Client : Session not found");
+                return;
+            }
         }
         private string GetRequestPublicKey()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -28,6 +29,7 @@ namespace VirtualOS.Invisable_ink
         string username;
         static int windowsCount = 0;
         bool isUserContacted = false;
+        bool isMessageBoxContainPath = false;
         public InvisableInk()
         {
             InitializeComponent();
@@ -60,7 +62,12 @@ namespace VirtualOS.Invisable_ink
         }
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            string message = MessageBox.Text.Trim();
+            if (isMessageBoxContainPath)
+            {
+                MessageBox.Show("please press Send File button");
+                return;
+            }
+            string message = IMessageBox.Text.Trim();
             if (!string.IsNullOrEmpty(message) || !isUserContacted)
             {
                 string targetedUser = UserTextbox.Text;
@@ -68,7 +75,8 @@ namespace VirtualOS.Invisable_ink
                 {
                     await appController.SendMessage(message, targetedUser);
                     AppendChat($"You: {message}");
-                    MessageBox.Clear();
+                    
+                    IMessageBox.Clear();
                 }
                 else
                     System.Windows.MessageBox.Show("Client : Please enter Username of user you want");
@@ -92,6 +100,38 @@ namespace VirtualOS.Invisable_ink
         private void Change_Peer(object sender, TextChangedEventArgs e)
         {
             isUserContacted = false;
+        }
+
+        private async void SendFileButton_Click(Object sender, RoutedEventArgs e)
+        {
+            string targetedUser = UserTextbox.Text;
+            if (!string.IsNullOrEmpty(targetedUser))
+            {
+                if (isMessageBoxContainPath)
+                {
+                    await appController.SendFile(IMessageBox.Text , targetedUser);
+                    AppendChat($"You: {IMessageBox.Text}");
+                    IMessageBox.Clear();
+                    isMessageBoxContainPath = false;
+                    IMessageBox.IsReadOnly = false;
+                }
+                else
+                {
+                    OpenFileDialog openFileDialog = new OpenFileDialog();
+                    openFileDialog.Filter = "Text documents (.txt)|*.txt|All files (*.*)|*.*";
+                    Nullable<bool> result = openFileDialog.ShowDialog();
+
+                    if (result == true)
+                    {
+                        string filename = openFileDialog.FileName;
+                        IMessageBox.Text = filename;
+                        IMessageBox.IsReadOnly = true;
+                        isMessageBoxContainPath = true;
+                    }
+                }
+            }
+            else
+                MessageBox.Show("Client : Please enter Username of user you want");
         }
     }
 }
