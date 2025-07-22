@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VirtualOS.Commuication;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace VirtualOS
 {
@@ -109,12 +111,13 @@ namespace VirtualOS
         }
     }
 
-
+    
     public class AppController
     {
         private Client client;
         private static Server? serverinstanc;
         public event Action<string> MessageReceived;
+        public event Action<string , long , byte[]> FileReceived;
         public AppController()
         {
             
@@ -128,7 +131,12 @@ namespace VirtualOS
         {
             client = _client;
             client.MessageReceived += OnMessageReceived;
+            client.FileReceived += OnFileReceived;
             _ = client.ListenForMessages();
+        }
+        private void OnFileReceived(string fileName , long Size , byte[] fileData)
+        {
+            FileReceived?.Invoke(fileName , Size, fileData);
         }
         private void OnMessageReceived(string message)
         {

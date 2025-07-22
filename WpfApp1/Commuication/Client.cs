@@ -118,8 +118,10 @@ namespace VirtualOS.Commuication
         private int SERVER_PORT;
         private NetworkStream stream;
         private KeyManager keyManager;
+        private MetaData FileMessageMetaData;
         private Dictionary<string, SessionData> CurrentOpenSessions = new Dictionary<string, SessionData>();
         public event Action<string> MessageReceived;
+        public event Action<string,long ,byte[]> FileReceived;
 
         public Client(string _userName, string ip, int port)
         {
@@ -206,13 +208,13 @@ namespace VirtualOS.Commuication
                     case "MetaData":
                         var md = JsonSerializer.Deserialize<MetaData>(json);
                         buffer = new byte[md.FileLength + 1024];
+                        FileMessageMetaData = md;
                         break;
 
                     case "FileTransfer":
                         var file = JsonSerializer.Deserialize<FileDataCarrier>(json);
                         buffer = new byte[1024];
-                        MessageReceived?.Invoke($"{file.Sender} : File Recieved successfully " +
-                            $"\nContent : \n{Encoding.UTF8.GetString(file.Data)}");
+                        ProcessFileReceived(file);
                         break;
                     case "Message":
                         var messageObj = JsonSerializer.Deserialize<Message>(json);
@@ -229,6 +231,15 @@ namespace VirtualOS.Commuication
                         MessageBox.Show($"Client : Unknown message type: {messageType.Type}");
                         break;
                 }
+            }
+        }
+        private void ProcessFileReceived(FileDataCarrier file)
+        {
+            if (CurrentOpenSessions.TryGetValue(file.Sender, out SessionData session))
+            {
+                string decyptedMessage = Decrypt(file.Data, session.Key, session.Iv);
+                byte[] decyptedMessagebytes = Encoding.UTF8.GetBytes(decyptedMessage);
+                FileReceived?.Invoke(FileMessageMetaData.FileName, FileMessageMetaData.FileLength , decyptedMessagebytes);
             }
         }
         private string Decrypt(byte[] encryptedPassword, byte[] key, byte[] iv)
@@ -331,31 +342,28 @@ namespace VirtualOS.Commuication
             if (CurrentOpenSessions.TryGetValue(targetuser, out SessionData session))
             {
                 FileInfo fileInfo = new FileInfo(Filepath);
-                byte[] encryptedContent;
-                
-                //encrypt content
                 byte[] content = File.ReadAllBytes(Filepath);
-                encryptedContent = content;
-
                 FileDataCarrier fileData = new FileDataCarrier
                 {
                     Type = "FileTransfer",
                     Sender = userName,
                     TargetUser = targetuser,
-                    Data = encryptedContent
+                    Data = content
                 };
-                byte[] fileByts = IFile.SerializeFile(fileData);
                 MetaData meta = new MetaData
                 {
                     Type = "MetaData",
                     Sender = userName,
                     TargetUser = targetuser,
                     FileName = fileInfo.Name,
-                    FileLength = fileByts.Length
+                    FileLength = IFile.SerializeFile(fileData).Length
                 };
                 _ = SendFileMetaData(meta, targetuser);
-                
 
+                string strContent = Encoding.UTF8.GetString(content);
+                byte[] encryptedContent = Encrypt(strContent, session.Key, session.Iv);
+                fileData.Data = encryptedContent;
+                byte[] fileByts = IFile.SerializeFile(fileData);
                 await stream.WriteAsync(fileByts, 0, fileByts.Length);
             }
             else

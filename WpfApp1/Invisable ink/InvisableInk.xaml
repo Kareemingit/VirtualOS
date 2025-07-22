@@ -5,21 +5,84 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VirtualOS.Invisable_ink"
         mc:Ignorable="d"
-        Title="Invisable Ink" Height="350" Width="525">
+        Title="Invisable Ink" Height="350" Width="550">
+
     <Grid>
-        <TextBox Name="ChatBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Margin="10,70,10,80"/>
-        <!-- footer controls -->
+        <ListBox Name="ChatBox" 
+                 Margin="10,70,10,80" 
+                 VerticalAlignment="Stretch"
+                 HorizontalAlignment="Stretch"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="2"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
         <TextBox Name="IMessageBox" Height="30" Margin="10,0,160,30" VerticalAlignment="Bottom"/>
         <Button Name="SendButton" Content="Send" Width="70" Height="30" Margin="0,0,85,30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="SendButton_Click"/>
         <Button x:Name="SendFileButton" Content="Send File" Width="70" Height="30" Margin="0,0,10,30" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="SendFileButton_Click"/>
-        <!-- contact with.. -->
+
         <TextBox Name="UserTextbox" HorizontalAlignment="Left" Margin="108,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" TextChanged="Change_Peer"/>
         <Label Content="User:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <Button Content="Contact" HorizontalAlignment="Left" Height="23" Margin="244,10,0,0" VerticalAlignment="Top" Width="79" Click="Contact_Click"/>
-        <!-- ur usr name -->
+
         <TextBox x:Name="YourUserNameTextBox" HorizontalAlignment="Left" Margin="108,42,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Content="Your Username:" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
         <Button Content="Change" HorizontalAlignment="Left" Height="24" Margin="244,39,0,0" VerticalAlignment="Top" Width="79" Click="ChangeB_Click"/>
-        
+
     </Grid>
+
 </Window>
+<!-- 
+
+    
+    
+____________________________________________________________________
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10,10,10,10">
+            <Label Content="User:"/>
+            <TextBox Name="UserTextbox" Width="111" Margin="5,0" Height="24"/>
+            <Button Content="Contact" Width="79" Click="Contact_Click"/>
+            <Label Content="Your Username:"/>
+            <TextBox x:Name="YourUserNameTextBox" Width="93"/>
+            <Button Content="Change" Width="79" Click="ChangeB_Click" Margin="5,0"/>
+        </StackPanel>
+
+        
+        <ListBox Name="ChatBox"
+             Grid.Row="1"
+             Margin="0"
+             VerticalAlignment="Stretch"
+             HorizontalAlignment="Stretch"
+             ScrollViewer.VerticalScrollBarVisibility="Auto"
+             ScrollViewer.HorizontalScrollBarVisibility="Auto">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="2"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+       
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="10" VerticalAlignment="Bottom">
+            <TextBox Name="IMessageBox" Width="300" Height="30"/>
+            <Button Name="SendButton" Content="Send" Width="70" Height="30" Click="SendButton_Click" Margin="5,0"/>
+            <Button x:Name="SendFileButton" Content="Send File" Width="70" Height="30" Click="SendFileButton_Click"/>
+        </StackPanel>
+
+    </Grid>
+    
+    
+-->
