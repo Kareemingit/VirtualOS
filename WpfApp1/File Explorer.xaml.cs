@@ -113,11 +113,13 @@ namespace VirtualOS
             var CopyItem = new MenuItem { Header = "Copy", Tag = vDir };
             CopyItem.Click += (s, e) =>
             {
+                parentWindow.CopyItem(vDir);
             };
 
             var CutItem = new MenuItem { Header = "Cut", Tag = vDir };
-            CopyItem.Click += (s, e) =>
+            CutItem.Click += (s, e) =>
             {
+                parentWindow.CutItem(vDir);
             };
 
             menu.Items.Add(deleteItem);
@@ -190,7 +192,6 @@ namespace VirtualOS
         string unknownFileTypeIconPath = "D:\\01 Kareem\\programing projects\\VirtualOS\\WpfApp1\\Assets\\icons\\9166568.png";
         private VirtualDir currentDir;
         public VirtualDir CurrentDir => currentDir;
-
         public File_Explorer(DeskDriver root, List<VirtualDir> rootStructure)
         {
             InitializeComponent();
@@ -209,7 +210,7 @@ namespace VirtualOS
         private string TakeInput()
         {
             string output = null;
-            var inputWindow = new NameInputWindow { Owner = this };
+            var inputWindow = new NameInputWindow { Owner =this};
             if (inputWindow.ShowDialog() == true && !string.IsNullOrEmpty(inputWindow.InputText))
             {
                 output = inputWindow.InputText;
@@ -344,7 +345,9 @@ namespace VirtualOS
             {
                 paste();
             };
-
+            if(!core.isThereApair())
+                pasteSubMenu.IsEnabled = false;
+            
             newSubMenu.Items.Add(newFolderItem);
             newSubMenu.Items.Add(newFileItem);
             contextMenu.Items.Add(pasteSubMenu);
@@ -355,6 +358,8 @@ namespace VirtualOS
         }
         private void paste()
         {
+            core.PasteItem(currentDir);
+            RefreshSidebarAndIcons();
         }
         public void CreateNewFolder(VirtualDir distinationNode)
         {
@@ -383,6 +388,13 @@ namespace VirtualOS
                 RefreshSidebarAndIcons();
             }
         }
-
+        public void CopyItem(VirtualDir virtualDir)
+        {
+            core.CopyItem(virtualDir);
+        }
+        public void CutItem(VirtualDir virtualDir)
+        {
+            core.CutItem(virtualDir);
+        }
     }
 }

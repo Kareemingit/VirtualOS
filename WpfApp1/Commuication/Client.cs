@@ -110,6 +110,7 @@ namespace VirtualOS.Commuication
             return JsonSerializer.Deserialize<FileDataCarrier>(json);
         }
     }
+    
     public class Client : TcpClient
     {
         public string userName;

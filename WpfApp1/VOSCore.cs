@@ -109,6 +109,24 @@ namespace VirtualOS
                 virtualDirController.DeleteFile(file);
             }
         }
+        public bool isThereApair()
+        {
+            return virtualDirController.isThereAPair();
+        }
+        public void CopyItem(VirtualDir vDir)
+        {
+            if (vDir == null) return;
+            virtualDirController.TakeCopyFromItem(vDir);
+        }
+        public void CutItem(VirtualDir vDir)
+        {
+            if(vDir == null) return;
+            virtualDirController.TakeCutFromItem(vDir);
+        }
+        public void PasteItem(VirtualDir DistnationDir)
+        {
+            virtualDirController.PasteItemInTempStorage(DistnationDir);
+        }
     }
 
     

@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using VirtualOS.Invisable_ink;
+using VirtualOS.My_File_Dialog;
 
 namespace VirtualOS
 {
@@ -165,6 +166,8 @@ namespace VirtualOS
                     {
                         explorer = new File_Explorer(root, root.Children);
                         explorer.Show();
+                        //IFileDialog dialog = new IFileDialog();
+                        //dialog.Show();
                     }
                 }
                 else if (icon.Name == "Invisable Ink")

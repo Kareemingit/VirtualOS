@@ -8,6 +8,9 @@
     <Compile Update="Invisable ink\InvisableInk.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="My File Dialog\IFileDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="NameInputWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -218,13 +218,19 @@ namespace VirtualOS
 
     }
 
+    class Pair
+    {
+        public bool isCopy { set; get; }
+        public VirtualDir Dir { get; set; }
+    }
+
     //Core File System Engin
     public class VirtualDirController
     {
         public DeskDriver? driverTree;
         private static VirtualDirController? _instance;
         public static VirtualDirController Instance => _instance ??= new VirtualDirController();
-        private VirtualDir userTempStorage = null;
+        private Pair userTempStorage;
         public VirtualDirController() { }
         public void StartLoader()
         {
@@ -351,7 +357,7 @@ namespace VirtualOS
                 }
                 else
                 {
-                    MessageBox.Show($"File : {file.UIPath} does not exist.");
+                    MessageBox.Show($"File : {file.Virtualpath} does not exist.");
                     return;
                 }
             }
@@ -387,6 +393,31 @@ namespace VirtualOS
                 }
             }
         }
+        private void SetFileCopyInstaceInTreeAndHardWare(VirtualDir item , VirtualDir DistnationDir)
+        {
+            string dpath = DistnationDir.Virtualpath + "\\" + item.Name;
+            File.Copy(item.Virtualpath , dpath);
+            if (item is TXTFile tXTFile)
+            {
+                TXTFile copyInstanc = new TXTFile(
+                    item.Name,
+                    DistnationDir.Virtualpath+ "\\" + tXTFile.Name,
+                    DistnationDir.UIPath + "\\" + tXTFile.Name
+                );
+                copyInstanc.Write(tXTFile.Read() , DistnationDir.Virtualpath + "\\" + tXTFile.Name);
+                PlantLaef(copyInstanc, DistnationDir);
+            }
+            else
+            {
+                UnSupportedFile unSupportedFile = new UnSupportedFile(
+                    item.Name,
+                    DistnationDir.Virtualpath + item.Name,
+                    "",
+                    DistnationDir.UIPath + item.Name
+                );
+                PlantLaef(unSupportedFile , DistnationDir);
+            }
+        }
         public void PlantNewItem(VirtualDir Newitem , VirtualDir distNode)
         {
             if(Newitem is VirtualFolder folder)
@@ -409,6 +440,46 @@ namespace VirtualOS
             uprootingFileFromHardWare(file);
             uprootingFileFromTree(driverTree,file);
         }
+        public bool isThereAPair()
+        {
+            if (userTempStorage != null) return true;
+            return false;
+        }
+        public void TakeCopyFromItem(VirtualDir dir)
+        {
+            Pair pair = new Pair { 
+                Dir = dir,
+                isCopy = true
+            };
+            userTempStorage = pair;
+        }
+        public void TakeCutFromItem(VirtualDir dir)
+        {
+            Pair pair = new Pair
+            {
+                Dir = dir,
+                isCopy = false
+            };
+            userTempStorage = pair;
+        }
+        public void PasteItemInTempStorage(VirtualDir DistnationDir)
+        {
+            if(userTempStorage == null) return;
+            VirtualDir item = userTempStorage.Dir;
+            if(item is VirtualFolder)
+            {
 
+            }
+            else
+            {
+                SetFileCopyInstaceInTreeAndHardWare(item, DistnationDir);
+                if (!userTempStorage.isCopy)
+                {
+                    DeleteFile((VirtualFile)item);
+                    userTempStorage = null;
+                }
+            }
+            
+        }
     }
 }
