@@ -223,7 +223,11 @@ namespace VirtualOS
         public bool isCopy { set; get; }
         public VirtualDir Dir { get; set; }
     }
-
+    class StackItem
+    {
+        public VirtualDir item { set; get; }
+        public VirtualDir Distpath { get; set; }
+    }
     //Core File System Engin
     public class VirtualDirController
     {
@@ -418,6 +422,26 @@ namespace VirtualOS
                 PlantLaef(unSupportedFile , DistnationDir);
             }
         }
+        private void SetFolderCopyInstaceInTreeAndHardWare(VirtualDir item , VirtualDir DistnationDir)
+        {
+            Stack<StackItem> stack = new();
+
+            stack.Push(new StackItem { item =  item  , Distpath = DistnationDir});
+
+            while (stack.Count > 0) 
+            {
+                StackItem top = stack.Pop();
+
+                if(top.item is VirtualFolder folder)
+                {
+
+                }
+                else
+                {
+                    SetFileCopyInstaceInTreeAndHardWare(top.item, top.Distpath);
+                }
+            }
+        }
         public void PlantNewItem(VirtualDir Newitem , VirtualDir distNode)
         {
             if(Newitem is VirtualFolder folder)
@@ -468,7 +492,12 @@ namespace VirtualOS
             VirtualDir item = userTempStorage.Dir;
             if(item is VirtualFolder)
             {
-
+                SetFolderCopyInstaceInTreeAndHardWare(item, DistnationDir);
+                if (!userTempStorage.isCopy)
+                {
+                    DeleteFolder((VirtualFolder)item);
+                    userTempStorage = null;
+                }
             }
             else
             {
